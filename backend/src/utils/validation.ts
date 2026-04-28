@@ -41,6 +41,15 @@ export const createTransactionSchema = z.object({
   discount_amount: z.number().min(0).default(0),
   customer_name: z.string().optional(),
   notes: z.string().optional(),
+  items: z.array(
+    z.object({
+      product_id: z.string().uuid('Invalid product ID'),
+      product_name: z.string().min(1),
+      product_sku: z.string().min(1),
+      quantity: z.number().int().positive('Quantity must be a positive integer'),
+      unit_price: z.number().positive('Unit price must be positive'),
+    })
+  ).min(1, 'At least one item is required'),
 });
 
 export const updateInventorySchema = z.object({

@@ -1,5 +1,4 @@
 import * as transactionRepo from '../repositories/transaction.repository.js';
-import * as cartRepo from '../repositories/cart.repository.js';
 import { NotFoundError, ValidationError } from '../utils/errors.js';
 
 const TAX_RATE = 0.08;
@@ -16,8 +15,16 @@ export async function getTransactionById(id: string) {
   return transaction;
 }
 
+interface TransactionLineItem {
+  product_id: string;
+  product_name: string;
+  product_sku: string;
+  quantity: number;
+  unit_price: number;
+}
+
 export async function createTransaction(
-  cartId: string,
+  lineItems: TransactionLineItem[],
   userId: string | undefined,
   paymentMethod: 'cash' | 'card' | 'mixed',
   amountPaid: number,
@@ -25,16 +32,11 @@ export async function createTransaction(
   customerName?: string,
   notes?: string
 ) {
-  const cart = await cartRepo.findCartById(cartId);
-  if (!cart) {
-    throw new NotFoundError('Cart');
-  }
-
-  if (cart.items.length === 0) {
+  if (!lineItems || lineItems.length === 0) {
     throw new ValidationError('Cannot checkout an empty cart');
   }
 
-  const subtotal = cart.items.reduce(
+  const subtotal = lineItems.reduce(
     (sum, item) => sum + Number(item.unit_price) * item.quantity,
     0
   );
@@ -58,17 +60,15 @@ export async function createTransaction(
     changeGiven,
     customerName,
     notes,
-    items: cart.items.map(item => ({
+    items: lineItems.map(item => ({
       productId: item.product_id,
-      productName: (item as any).product_name || 'Unknown',
-      productSku: (item as any).product_sku || 'UNKNOWN',
+      productName: item.product_name,
+      productSku: item.product_sku,
       quantity: item.quantity,
       unitPrice: Number(item.unit_price),
       subtotal: Number(item.unit_price) * item.quantity,
     })),
   });
-
-  await cartRepo.convertCartToTransaction(cartId);
 
   return transaction;
 }

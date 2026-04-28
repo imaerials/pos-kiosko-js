@@ -43,7 +43,7 @@ export function TransactionsPage() {
                   <td className="px-6 py-4 whitespace-nowrap font-mono text-sm">{tx.receipt_number}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">{new Date(tx.created_at).toLocaleString()}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">{tx.items.length}</td>
-                  <td className="px-6 py-4 whitespace-nowrap font-medium">${tx.total.toFixed(2)}</td>
+                  <td className="px-6 py-4 whitespace-nowrap font-medium">${Number(tx.total).toFixed(2)}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                       tx.payment_method === 'cash' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'

@@ -85,8 +85,8 @@ export function CheckoutModal({ isOpen, onClose, total, onComplete }: CheckoutMo
             <Input
               label="Amount Received"
               type="number"
-              step="0.01"
-              min={total}
+              step="any"
+              min={Math.ceil(total * 100) / 100}
               value={amountPaid}
               onChange={(e) => setAmountPaid(e.target.value)}
               placeholder="0.00"

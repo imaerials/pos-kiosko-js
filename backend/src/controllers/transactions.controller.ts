@@ -24,10 +24,10 @@ export async function getTransaction(req: Request, res: Response, next: NextFunc
 
 export async function createTransaction(req: Request, res: Response, next: NextFunction) {
   try {
-    const { cart_id, payment_method, amount_paid, discount_amount, customer_name, notes } = req.body;
+    const { payment_method, amount_paid, discount_amount, customer_name, notes, items } = req.body;
     const userId = req.user?.userId;
     const transaction = await transactionService.createTransaction(
-      cart_id,
+      items,
       userId,
       payment_method,
       amount_paid,

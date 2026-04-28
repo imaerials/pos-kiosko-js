@@ -36,7 +36,7 @@ export function ReceiptModal({ isOpen, onClose, transaction }: ReceiptModalProps
           {transaction.items.map((item) => (
             <div key={item.id} className="flex justify-between text-sm">
               <span>{item.quantity}x {item.product_name}</span>
-              <span>${item.subtotal.toFixed(2)}</span>
+              <span>${Number(item.subtotal).toFixed(2)}</span>
             </div>
           ))}
         </div>
@@ -44,29 +44,29 @@ export function ReceiptModal({ isOpen, onClose, transaction }: ReceiptModalProps
         <div className="space-y-1 text-sm">
           <div className="flex justify-between">
             <span className="text-gray-600">Subtotal</span>
-            <span>${transaction.subtotal.toFixed(2)}</span>
+            <span>${Number(transaction.subtotal).toFixed(2)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Tax</span>
-            <span>${transaction.tax_amount.toFixed(2)}</span>
+            <span>${Number(transaction.tax_amount).toFixed(2)}</span>
           </div>
-          {transaction.discount_amount > 0 && (
+          {Number(transaction.discount_amount) > 0 && (
             <div className="flex justify-between text-green-600">
               <span>Discount</span>
-              <span>-${transaction.discount_amount.toFixed(2)}</span>
+              <span>-${Number(transaction.discount_amount).toFixed(2)}</span>
             </div>
           )}
           <div className="flex justify-between font-bold text-lg pt-2 border-t">
             <span>Total</span>
-            <span className="text-blue-600">${transaction.total.toFixed(2)}</span>
+            <span className="text-blue-600">${Number(transaction.total).toFixed(2)}</span>
           </div>
         </div>
 
         <div className="text-sm space-y-1">
           <p><span className="text-gray-500">Payment:</span> {transaction.payment_method.toUpperCase()}</p>
-          <p><span className="text-gray-500">Paid:</span> ${transaction.amount_paid.toFixed(2)}</p>
-          {transaction.change_given > 0 && (
-            <p><span className="text-gray-500">Change:</span> ${transaction.change_given.toFixed(2)}</p>
+          <p><span className="text-gray-500">Paid:</span> ${Number(transaction.amount_paid).toFixed(2)}</p>
+          {Number(transaction.change_given) > 0 && (
+            <p><span className="text-gray-500">Change:</span> ${Number(transaction.change_given).toFixed(2)}</p>
           )}
         </div>
 

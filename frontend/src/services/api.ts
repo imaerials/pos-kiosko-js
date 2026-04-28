@@ -112,12 +112,18 @@ export const transactionsApi = {
     return data;
   },
   create: async (payload: {
-    cart_id: string;
     payment_method: 'cash' | 'card' | 'mixed';
     amount_paid: number;
     discount_amount?: number;
     customer_name?: string;
     notes?: string;
+    items: {
+      product_id: string;
+      product_name: string;
+      product_sku: string;
+      quantity: number;
+      unit_price: number;
+    }[];
   }): Promise<Transaction> => {
     const { data } = await api.post<Transaction>('/transactions', payload);
     return data;

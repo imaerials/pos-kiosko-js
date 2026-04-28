@@ -33,26 +33,16 @@ export function POSPage() {
 
   const handleCheckoutComplete = async (paymentMethod: 'cash' | 'card', amountPaid: number) => {
     try {
-      const cartData = {
+      const transaction = await transactionsApi.create({
+        payment_method: paymentMethod,
+        amount_paid: paymentMethod === 'card' ? getTotal() : amountPaid,
         items: items.map(item => ({
           product_id: item.product_id,
           product_name: item.product_name,
           product_sku: item.product_sku,
           quantity: item.quantity,
           unit_price: Number(item.unit_price),
-          subtotal: Number(item.unit_price) * item.quantity,
         })),
-        subtotal: items.reduce((sum, item) => sum + Number(item.unit_price) * item.quantity, 0),
-        tax: items.reduce((sum, item) => sum + Number(item.unit_price) * item.quantity, 0) * 0.08,
-        total: getTotal(),
-      };
-
-      const mockCartId = 'cart-' + Date.now();
-
-      const transaction = await transactionsApi.create({
-        cart_id: mockCartId,
-        payment_method: paymentMethod,
-        amount_paid: paymentMethod === 'card' ? getTotal() : amountPaid,
       });
 
       setCompletedTransaction(transaction);
