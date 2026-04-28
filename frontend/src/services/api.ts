@@ -1,0 +1,148 @@
+import axios from 'axios';
+import type {
+  AuthResponse,
+  User,
+  Product,
+  Category,
+  Cart,
+  CartItem,
+  Transaction,
+  Inventory,
+} from '../types';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+
+const api = axios.create({
+  baseURL: API_URL,
+  headers: { 'Content-Type': 'application/json' },
+});
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('accessToken');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
+export const authApi = {
+  login: async (email: string, password: string): Promise<AuthResponse> => {
+    const { data } = await api.post<AuthResponse>('/auth/login', { email, password });
+    localStorage.setItem('accessToken', data.accessToken);
+    localStorage.setItem('refreshToken', data.refreshToken);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    return data;
+  },
+  logout: async () => {
+    await api.post('/auth/logout');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
+  },
+  getMe: async (): Promise<User> => {
+    const { data } = await api.get<User>('/auth/me');
+    return data;
+  },
+};
+
+export const productsApi = {
+  getAll: async (categoryId?: string): Promise<Product[]> => {
+    const params = categoryId ? { categoryId } : {};
+    const { data } = await api.get<Product[]>('/products', { params });
+    return data;
+  },
+  getById: async (id: string): Promise<Product> => {
+    const { data } = await api.get<Product>(`/products/${id}`);
+    return data;
+  },
+  getByBarcode: async (barcode: string): Promise<Product> => {
+    const { data } = await api.get<Product>(`/products/barcode/${barcode}`);
+    return data;
+  },
+};
+
+export const categoriesApi = {
+  getAll: async (): Promise<Category[]> => {
+    const { data } = await api.get<Category[]>('/categories');
+    return data;
+  },
+};
+
+export const cartApi = {
+  get: async (): Promise<Cart> => {
+    const { data } = await api.get<Cart>('/cart');
+    return data;
+  },
+  addItem: async (productId: string, quantity: number): Promise<CartItem> => {
+    const { data } = await api.post<CartItem>('/cart/items', { product_id: productId, quantity });
+    return data;
+  },
+  updateItem: async (itemId: string, quantity: number): Promise<CartItem> => {
+    const { data } = await api.put<CartItem>(`/cart/items/${itemId}`, { quantity });
+    return data;
+  },
+  removeItem: async (itemId: string): Promise<void> => {
+    await api.delete(`/cart/items/${itemId}`);
+  },
+  clear: async (): Promise<void> => {
+    await api.delete('/cart');
+  },
+};
+
+export const transactionsApi = {
+  getAll: async (limit = 50, offset = 0): Promise<Transaction[]> => {
+    const { data } = await api.get<Transaction[]>('/transactions', { params: { limit, offset } });
+    return data;
+  },
+  getById: async (id: string): Promise<Transaction> => {
+    const { data } = await api.get<Transaction>(`/transactions/${id}`);
+    return data;
+  },
+  create: async (payload: {
+    cart_id: string;
+    payment_method: 'cash' | 'card' | 'mixed';
+    amount_paid: number;
+    discount_amount?: number;
+    customer_name?: string;
+    notes?: string;
+  }): Promise<Transaction> => {
+    const { data } = await api.post<Transaction>('/transactions', payload);
+    return data;
+  },
+  refund: async (id: string): Promise<Transaction> => {
+    const { data } = await api.post<Transaction>(`/transactions/${id}/refund`);
+    return data;
+  },
+};
+
+export const inventoryApi = {
+  getAll: async (): Promise<Inventory[]> => {
+    const { data } = await api.get<Inventory[]>('/inventory');
+    return data;
+  },
+  getLowStock: async (): Promise<Inventory[]> => {
+    const { data } = await api.get<Inventory[]>('/inventory/low-stock');
+    return data;
+  },
+  update: async (productId: string, quantity: number, lowStockThreshold?: number): Promise<Inventory> => {
+    const payload: { quantity: number; low_stock_threshold?: number } = { quantity };
+    if (lowStockThreshold !== undefined) {
+      payload.low_stock_threshold = lowStockThreshold;
+    }
+    const { data } = await api.put<Inventory>(`/inventory/${productId}`, payload);
+    return data;
+  },
+};
