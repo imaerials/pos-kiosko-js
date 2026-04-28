@@ -1,4 +1,4 @@
-import { Package, ShoppingCart, ClipboardList, Settings, LogOut } from 'lucide-react';
+import { Package, ShoppingCart, ClipboardList, Settings, LogOut, Box } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { authApi } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
@@ -33,6 +33,9 @@ export function Header() {
         <nav className="flex items-center gap-2">
           <NavItem icon={<Package size={20} />} label="POS" path="/" />
           <NavItem icon={<ClipboardList size={20} />} label="Transactions" path="/transactions" />
+          {user?.role !== 'cashier' && (
+            <NavItem icon={<Box size={20} />} label="Products" path="/products" />
+          )}
           {user?.role !== 'cashier' && (
             <NavItem icon={<Settings size={20} />} label="Inventory" path="/inventory" />
           )}

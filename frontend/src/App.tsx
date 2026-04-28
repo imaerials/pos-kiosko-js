@@ -7,6 +7,7 @@ import { LoginPage } from './pages/LoginPage';
 import { POSPage } from './pages/POSPage';
 import { TransactionsPage } from './pages/TransactionsPage';
 import { InventoryPage } from './pages/InventoryPage';
+import { ProductsPage } from './pages/ProductsPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -80,6 +81,18 @@ export default function App() {
                 <AdminRoute>
                   <AppLayout>
                     <InventoryPage />
+                  </AppLayout>
+                </AdminRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/products"
+            element={
+              <ProtectedRoute>
+                <AdminRoute>
+                  <AppLayout>
+                    <ProductsPage />
                   </AppLayout>
                 </AdminRoute>
               </ProtectedRoute>

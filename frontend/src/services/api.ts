@@ -72,6 +72,33 @@ export const productsApi = {
     const { data } = await api.get<Product>(`/products/barcode/${barcode}`);
     return data;
   },
+  create: async (payload: {
+    sku: string;
+    name: string;
+    price: number;
+    description?: string;
+    barcode?: string;
+    cost?: number;
+    category_id?: string;
+  }): Promise<Product> => {
+    const { data } = await api.post<Product>('/products', payload);
+    return data;
+  },
+  update: async (id: string, payload: {
+    sku?: string;
+    name?: string;
+    price?: number;
+    description?: string;
+    barcode?: string;
+    cost?: number;
+    category_id?: string;
+  }): Promise<Product> => {
+    const { data } = await api.put<Product>(`/products/${id}`, payload);
+    return data;
+  },
+  delete: async (id: string): Promise<void> => {
+    await api.delete(`/products/${id}`);
+  },
 };
 
 export const categoriesApi = {
