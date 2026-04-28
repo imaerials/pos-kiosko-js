@@ -4,29 +4,104 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a **Grocery POS (Point of Sale)** fullstack application. The repository is structured as a monorepo with separate `frontend/` and `backend/` directories.
+**Grocery POS (Point of Sale)** fullstack application for grocery store operations.
 
-## Directory Structure
+## Stack
 
+- **Backend**: Express.js 5.x, Node.js, TypeScript
+- **Frontend**: Vite, React 19.x, TypeScript, Tailwind CSS
+- **Database**: PostgreSQL 16
+- **State**: Zustand (client), React Query (server)
+
+## Quick Start
+
+```bash
+# Start full stack ( Postgres + Backend + Frontend )
+docker-compose up --build
+
+# Or run services individually:
+docker-compose up postgres          # Database only
+docker-compose up backend          # API only
+docker-compose up frontend         # Dev server only
 ```
-├── frontend/    # Frontend application (structure to be determined)
-├── backend/     # Backend API (structure to be determined)
-├── docker-compose.yml
-└── README.md
-```
+
+Services:
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:3001
 
 ## Development Commands
 
-Commands will be added once the project structure is established. Expected workflows:
+### Backend
+```bash
+cd backend
+npm install          # Install dependencies
+npm run dev          # Start with tsx watch (requires Postgres)
+npm run build        # Compile TypeScript
+npm start            # Run production build
+npm run db:seed      # Seed database
+```
 
-- **Backend**: Likely Node.js/Express or similar (TBD when code is added)
-- **Frontend**: Likely React or similar (TBD when code is added)
-- **Docker**: `docker-compose up` for local development
+### Frontend
+```bash
+cd frontend
+npm install          # Install dependencies
+npm run dev          # Vite dev server
+npm run build        # Production build
+```
+
+## Seed Credentials
+
+| Email | Password | Role |
+|-------|----------|------|
+| admin@pos.local | admin123 | admin |
+| manager@pos.local | manager123 | manager |
+| cashier@pos.local | cashier123 | cashier |
 
 ## Architecture
 
-Architecture documentation will be added as code is committed to the repository.
+### Backend (`backend/src/`)
+```
+config/       # Database pool, environment validation
+middleware/   # JWT auth, error handler, rate limiter, validation
+routes/       # Express router definitions
+controllers/  # Route handlers (thin layer)
+services/     # Business logic
+repositories/ # Data access layer (SQL queries)
+db/           # Schema.sql, seed.sql, seed.js
+types/        # TypeScript interfaces
+utils/        # Custom errors, Zod validation schemas
+```
 
-## Status
+### Frontend (`frontend/src/`)
+```
+components/   # Reusable UI components (ui/, layout/, products/, cart/, checkout/, receipt/)
+pages/        # Route-level components (POSPage, LoginPage, TransactionsPage, InventoryPage)
+store/        # Zustand stores (authStore, cartStore)
+services/     # API client with axios interceptors
+hooks/        # Custom React hooks
+types/        # TypeScript interfaces
+```
 
-This is a freshly initialized repository with no committed code yet. The frontend and backend directories are empty placeholders.
+### API Endpoints
+| Route | Methods | Auth |
+|-------|---------|------|
+| /api/auth | POST login, GET me | Public / JWT |
+| /api/products | GET, POST, PUT, DELETE | CRUD by manager/admin |
+| /api/categories | GET, POST, PUT | CRUD by manager/admin |
+| /api/cart | GET, POST/PUT/DELETE items | JWT required |
+| /api/transactions | GET, POST, POST :id/refund | List own (cashier), all (manager), refund (manager) |
+| /api/inventory | GET, PUT, POST restock | manager/admin |
+
+### Database Schema
+Tables: `users`, `categories`, `products`, `inventory`, `carts`, `cart_items`, `transactions`, `transaction_items`
+
+Key design decisions:
+- `transaction_items` snapshot product data at sale time for historical accuracy
+- `inventory.quantity` decremented on transaction creation
+- Roles: `cashier` (POS + own transactions), `manager` (+ inventory, all transactions), `admin` (+ user management)
+
+## Role-Based Access
+
+- **cashier**: POS operations, view own transactions
+- **manager**: Inventory management, view all transactions, process refunds
+- **admin**: Full access including product/category/user CRUD
