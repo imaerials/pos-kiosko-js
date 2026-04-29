@@ -8,6 +8,7 @@ import { POSPage } from './pages/POSPage';
 import { TransactionsPage } from './pages/TransactionsPage';
 import { InventoryPage } from './pages/InventoryPage';
 import { ProductsPage } from './pages/ProductsPage';
+import { FinancePage } from './pages/FinancePage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,6 +33,16 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((state) => state.user);
 
   if (user?.role === 'cashier') {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+function AdminOnlyRoute({ children }: { children: React.ReactNode }) {
+  const user = useAuthStore((state) => state.user);
+
+  if (user?.role !== 'admin') {
     return <Navigate to="/" replace />;
   }
 
@@ -95,6 +106,18 @@ export default function App() {
                     <ProductsPage />
                   </AppLayout>
                 </AdminRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/finance"
+            element={
+              <ProtectedRoute>
+                <AdminOnlyRoute>
+                  <AppLayout>
+                    <FinancePage />
+                  </AppLayout>
+                </AdminOnlyRoute>
               </ProtectedRoute>
             }
           />

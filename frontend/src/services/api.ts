@@ -161,6 +161,28 @@ export const transactionsApi = {
   },
 };
 
+export const financeApi = {
+  getSummary: async (period: 'today' | 'week' | 'month' | 'year' = 'month') => {
+    const { data } = await api.get('/finance/summary', { params: { period } });
+    return data as {
+      period: string;
+      revenue: number;
+      refunds: number;
+      refund_count: number;
+      net_revenue: number;
+      cogs: number;
+      gross_profit: number;
+      tax_collected: number;
+      discounts_given: number;
+      transaction_count: number;
+      avg_transaction: number;
+      payment_methods: { method: string; amount: number; count: number }[];
+      top_products: { product_name: string; units_sold: number; revenue: number }[];
+      daily_revenue: { date: string; revenue: number; transactions: number }[];
+    };
+  },
+};
+
 export const inventoryApi = {
   getAll: async (): Promise<Inventory[]> => {
     const { data } = await api.get<Inventory[]>('/inventory');

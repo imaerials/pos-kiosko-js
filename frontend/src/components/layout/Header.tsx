@@ -1,4 +1,4 @@
-import { Package, ShoppingCart, ClipboardList, Settings, LogOut, Box } from 'lucide-react';
+import { Package, ShoppingCart, ClipboardList, Settings, LogOut, Box, TrendingUp } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { authApi } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
@@ -38,6 +38,9 @@ export function Header() {
           )}
           {user?.role !== 'cashier' && (
             <NavItem icon={<Settings size={20} />} label="Inventory" path="/inventory" />
+          )}
+          {user?.role === 'admin' && (
+            <NavItem icon={<TrendingUp size={20} />} label="Finance" path="/finance" />
           )}
         </nav>
 
