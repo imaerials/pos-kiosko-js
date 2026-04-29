@@ -9,16 +9,6 @@ A fullstack Point of Sale application for grocery store operations.
 - **Database**: PostgreSQL 16
 - **State**: Zustand (client), React Query (server)
 
-## Quick Start
-
-```bash
-docker compose up --build
-```
-
-Services:
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:3001
-
 ## Demo Credentials
 
 | Email | Password | Role |
@@ -27,6 +17,102 @@ Services:
 | manager@pos.local | manager123 | manager |
 | cashier@pos.local | cashier123 | cashier |
 
+---
+
+## Development (recommended)
+
+Runs the DB in Docker, backend and frontend natively with hot reload.
+
+**1. Start the database**
+
+```bash
+docker compose -f docker-compose.dev.yml up -d
+```
+
+**2. Install dependencies**
+
+```bash
+npm install                  # installs concurrently at the root
+npm install --prefix backend
+npm install --prefix frontend
+```
+
+**3. Configure environment**
+
+```bash
+cp .env.example .env                       # optional — defaults work out of the box
+cp backend/.env.example backend/.env      # required for local backend
+```
+
+**4. Seed the database** (first run only)
+
+```bash
+npm run seed        # products, categories, inventory
+npm run seed:users  # demo users
+```
+
+**5. Start both services**
+
+```bash
+npm run dev         # starts API (cyan) and UI (magenta) concurrently
+```
+
+Services:
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:3001
+
+Individual services:
+
+```bash
+npm run dev:api     # backend only
+npm run dev:ui      # frontend only
+```
+
+---
+
+## Production (Docker)
+
+Builds the TypeScript backend, compiles the frontend into a static bundle served by nginx, and wires everything together. nginx proxies `/api/` to the backend, so only port 80 is exposed.
+
+```bash
+cp .env.example .env   # set JWT_SECRET at minimum
+docker compose up --build -d
+```
+
+App is available at http://localhost (port 80 by default, override with `FRONTEND_PORT`).
+
+Seed on first run:
+
+```bash
+docker compose exec backend node dist/server.js  # ensure backend is up
+# then seed via the dev compose or a one-off container:
+docker compose -f docker-compose.dev.yml run --rm postgres \
+  psql -h localhost -U postgres -d pos_kiosko -f /dev/null
+```
+
+Or simply run the dev DB and seed scripts before switching to the prod stack:
+
+```bash
+docker compose -f docker-compose.dev.yml up -d
+npm run seed && npm run seed:users
+docker compose -f docker-compose.dev.yml down
+docker compose up --build -d
+```
+
+---
+
+## Environment Variables
+
+| File | Used by | Purpose |
+|------|---------|---------|
+| `.env` (root) | `docker compose` | Overrides for both compose files (DB creds, JWT secret, ports) |
+| `backend/.env` | `dotenv` in `backend/src/config/env.ts` | Required when running the backend locally |
+| `frontend/.env` | Vite | `VITE_API_URL` if the backend isn't at `http://localhost:3001/api` |
+
+All three are gitignored. In production the frontend always calls `/api` (relative), which nginx proxies to the backend — `VITE_API_URL` is not needed.
+
+---
+
 ## Features
 
 - **POS Interface**: Product grid with category filtering, cart management, checkout flow
@@ -34,112 +120,41 @@ Services:
 - **Inventory Management**: Stock levels, low stock alerts, restocking (manager/admin)
 - **Role-Based Access**: Cashiers process sales, managers handle inventory and refunds
 
+---
+
 ## Project Structure
 
 ```
-├── backend/           # Express.js API
+├── package.json          # root scripts (concurrently dev, seed shortcuts)
+├── docker-compose.yml    # production stack (nginx frontend, compiled backend)
+├── docker-compose.dev.yml # dev stack (DB only)
+├── backend/
+│   ├── Dockerfile        # multi-stage: tsc build → prod node image
 │   └── src/
-│       ├── config/       # Database, environment
-│       ├── middleware/    # Auth, validation, rate limiting
-│       ├── routes/       # API endpoints
-│       ├── controllers/   # Route handlers
-│       ├── services/     # Business logic
-│       ├── repositories/ # Data access
-│       └── db/           # Schema, seeds
-├── frontend/          # React application
-│   └── src/
-│       ├── components/   # UI components
-│       ├── pages/        # Route pages
-│       ├── store/        # Zustand state
-│       └── services/     # API client
-└── docker-compose.yml   # Full stack orchestration
+│       ├── config/       # database pool, environment validation
+│       ├── middleware/   # JWT auth, error handler, rate limiter, validation
+│       ├── routes/       # Express router definitions
+│       ├── controllers/  # route handlers
+│       ├── services/     # business logic
+│       ├── repositories/ # data access (SQL queries)
+│       └── db/           # schema.sql, seed.sql, seed scripts
+└── frontend/
+    ├── Dockerfile        # multi-stage: vite build → nginx:alpine
+    ├── nginx.conf        # SPA fallback, /api/ proxy, static asset caching
+    └── src/
+        ├── components/   # UI components
+        ├── pages/        # route pages
+        ├── store/        # Zustand state
+        └── services/     # API client
 ```
-
-## Development
-
-### Option 1: Docker (recommended)
-
-Runs Postgres, backend, and frontend with hot reload. Source folders are bind-mounted, so edits in `backend/src` and `frontend/src` reload automatically.
-
-```bash
-docker compose up --build              # full stack
-docker compose up postgres              # database only
-docker compose up backend               # API only (needs postgres)
-docker compose up frontend              # Vite dev server only
-
-docker compose logs -f backend          # tail logs
-docker compose down                     # stop
-docker compose down -v                  # stop + wipe DB volume
-```
-
-Seed the database (after Postgres is up):
-
-```bash
-docker compose exec backend npm run db:seed         # products, categories, inventory
-docker compose exec backend npm run db:seed:users   # demo users
-```
-
-The compose file works out of the box with sensible defaults. To override (custom ports, JWT secret, etc.), copy the root example file and edit it — `docker compose` auto-loads `.env` from the project root:
-
-```bash
-cp .env.example .env
-```
-
-### Option 2: Run services locally
-
-Requires Node.js 20+ and a running Postgres 16 instance. Start Postgres with `docker compose up postgres` if you don't have one.
-
-**Backend** (`http://localhost:3001`):
-
-```bash
-cd backend
-cp .env.example .env       # adjust DB_HOST=localhost if Postgres is on the host
-npm install
-npm run db:seed
-npm run db:seed:users
-npm run dev                # tsx watch
-```
-
-**Frontend** (`http://localhost:5173`):
-
-```bash
-cd frontend
-cp .env.example .env       # only needed if the backend is on a non-default URL
-npm install
-npm run dev
-```
-
-### Environment variables
-
-Three example files cover all configuration:
-
-| File | Loaded by | Purpose |
-|------|-----------|---------|
-| `.env` (root) | `docker compose` | Overrides for the Docker stack (ports, DB creds, JWT secret) |
-| `backend/.env` | `dotenv` in `backend/src/config/env.ts` | Required when running the backend locally outside Docker |
-| `frontend/.env` | Vite | `VITE_API_URL` if the backend isn't at `http://localhost:3001/api` |
-
-All three are gitignored. Copy the corresponding `.env.example` and uncomment / edit the values you need to override — defaults match the Docker setup.
-
-### Useful scripts
-
-| Location | Command | Purpose |
-|----------|---------|---------|
-| backend  | `npm run dev` | tsx watch mode |
-| backend  | `npm run build` / `npm start` | compile + run production build |
-| backend  | `npm run db:seed` | seed products/categories/inventory |
-| backend  | `npm run db:seed:users` | seed demo users |
-| frontend | `npm run dev` | Vite dev server |
-| frontend | `npm run build` | production build |
-| frontend | `npm run preview` | preview built bundle |
 
 ## API Endpoints
 
-| Route | Methods | Description |
-|-------|---------|-------------|
-| /api/auth | POST login, GET me | Authentication |
-| /api/products | GET, POST, PUT, DELETE | Product management |
-| /api/categories | GET, POST, PUT | Category management |
-| /api/cart | GET, POST/PUT/DELETE items | Shopping cart |
-| /api/transactions | GET, POST, POST :id/refund | Sales transactions |
-| /api/inventory | GET, PUT, POST restock | Inventory control |
+| Route | Methods | Auth |
+|-------|---------|------|
+| /api/auth | POST login, GET me | Public / JWT |
+| /api/products | GET, POST, PUT, DELETE | manager/admin |
+| /api/categories | GET, POST, PUT | manager/admin |
+| /api/cart | GET, POST/PUT/DELETE items | JWT required |
+| /api/transactions | GET, POST, POST :id/refund | cashier (own), manager (all) |
+| /api/inventory | GET, PUT, POST restock | manager/admin |
