@@ -10,7 +10,7 @@ export async function login(email: string, password: string) {
     throw new UnauthorizedError('Invalid email or password');
   }
 
-  const isValidPassword = await bcrypt.compare(password, user.password_hash);
+  const isValidPassword = await bcrypt.compare(password, (user as any).password_hash);
 
   if (!isValidPassword) {
     throw new UnauthorizedError('Invalid email or password');

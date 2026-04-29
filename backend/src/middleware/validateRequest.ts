@@ -1,11 +1,11 @@
-import { Request, Response, NextFunction } from 'express';
+import { RequestHandler } from 'express';
 import { z } from 'zod';
 import { ValidationError } from '../utils/errors.js';
 
 type ValidateBodySchema = z.ZodSchema;
 
-export function validateBody(schema: ValidateBodySchema) {
-  return (req: Request, _res: Response, next: NextFunction) => {
+export function validateBody(schema: ValidateBodySchema): RequestHandler {
+  return (req, _res, next) => {
     const result = schema.safeParse(req.body);
 
     if (!result.success) {
@@ -18,8 +18,8 @@ export function validateBody(schema: ValidateBodySchema) {
   };
 }
 
-export function validateQuery(schema: ValidateBodySchema) {
-  return (req: Request, _res: Response, next: NextFunction) => {
+export function validateQuery(schema: ValidateBodySchema): RequestHandler {
+  return (req, _res, next) => {
     const result = schema.safeParse(req.query);
 
     if (!result.success) {

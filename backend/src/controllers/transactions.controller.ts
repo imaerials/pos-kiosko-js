@@ -1,7 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
+import { RequestHandler } from 'express';
 import * as transactionService from '../services/transaction.service.js';
 
-export async function getTransactions(req: Request, res: Response, next: NextFunction) {
+export const getTransactions: RequestHandler = async (req, res, next) => {
   try {
     const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
     const offset = req.query.offset ? parseInt(req.query.offset as string) : 0;
@@ -11,18 +11,18 @@ export async function getTransactions(req: Request, res: Response, next: NextFun
   } catch (error) {
     next(error);
   }
-}
+};
 
-export async function getTransaction(req: Request, res: Response, next: NextFunction) {
+export const getTransaction: RequestHandler<{ id: string }> = async (req, res, next) => {
   try {
     const transaction = await transactionService.getTransactionById(req.params.id);
     res.json(transaction);
   } catch (error) {
     next(error);
   }
-}
+};
 
-export async function createTransaction(req: Request, res: Response, next: NextFunction) {
+export const createTransaction: RequestHandler = async (req, res, next) => {
   try {
     const { payment_method, amount_paid, discount_amount, customer_name, notes, items } = req.body;
     const userId = req.user?.userId;
@@ -39,13 +39,13 @@ export async function createTransaction(req: Request, res: Response, next: NextF
   } catch (error) {
     next(error);
   }
-}
+};
 
-export async function refundTransaction(req: Request, res: Response, next: NextFunction) {
+export const refundTransaction: RequestHandler<{ id: string }> = async (req, res, next) => {
   try {
     const transaction = await transactionService.refundTransaction(req.params.id);
     res.json(transaction);
   } catch (error) {
     next(error);
   }
-}
+};

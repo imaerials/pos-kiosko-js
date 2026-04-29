@@ -1,7 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
+import { RequestHandler } from 'express';
 import * as cartService from '../services/cart.service.js';
 
-export async function getCart(req: Request, res: Response, next: NextFunction) {
+export const getCart: RequestHandler = async (req, res, next) => {
   try {
     const userId = req.user?.userId;
     const sessionId = req.headers['x-session-id'] as string | undefined;
@@ -10,9 +10,9 @@ export async function getCart(req: Request, res: Response, next: NextFunction) {
   } catch (error) {
     next(error);
   }
-}
+};
 
-export async function addItem(req: Request, res: Response, next: NextFunction) {
+export const addItem: RequestHandler = async (req, res, next) => {
   try {
     const userId = req.user?.userId;
     const sessionId = req.headers['x-session-id'] as string | undefined;
@@ -24,9 +24,9 @@ export async function addItem(req: Request, res: Response, next: NextFunction) {
   } catch (error) {
     next(error);
   }
-}
+};
 
-export async function updateItem(req: Request, res: Response, next: NextFunction) {
+export const updateItem: RequestHandler<{ id: string }> = async (req, res, next) => {
   try {
     const userId = req.user?.userId;
     const sessionId = req.headers['x-session-id'] as string | undefined;
@@ -38,9 +38,9 @@ export async function updateItem(req: Request, res: Response, next: NextFunction
   } catch (error) {
     next(error);
   }
-}
+};
 
-export async function removeItem(req: Request, res: Response, next: NextFunction) {
+export const removeItem: RequestHandler<{ id: string }> = async (req, res, next) => {
   try {
     const userId = req.user?.userId;
     const sessionId = req.headers['x-session-id'] as string | undefined;
@@ -51,9 +51,9 @@ export async function removeItem(req: Request, res: Response, next: NextFunction
   } catch (error) {
     next(error);
   }
-}
+};
 
-export async function clearCart(req: Request, res: Response, next: NextFunction) {
+export const clearCart: RequestHandler = async (req, res, next) => {
   try {
     const userId = req.user?.userId;
     const sessionId = req.headers['x-session-id'] as string | undefined;
@@ -64,4 +64,4 @@ export async function clearCart(req: Request, res: Response, next: NextFunction)
   } catch (error) {
     next(error);
   }
-}
+};

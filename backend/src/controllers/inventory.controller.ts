@@ -1,25 +1,25 @@
-import { Request, Response, NextFunction } from 'express';
+import { RequestHandler } from 'express';
 import * as inventoryService from '../services/inventory.service.js';
 
-export async function getInventory(_req: Request, res: Response, next: NextFunction) {
+export const getInventory: RequestHandler = async (req, res, next) => {
   try {
     const inventory = await inventoryService.getAllInventory();
     res.json(inventory);
   } catch (error) {
     next(error);
   }
-}
+};
 
-export async function getLowStock(_req: Request, res: Response, next: NextFunction) {
+export const getLowStock: RequestHandler = async (req, res, next) => {
   try {
     const inventory = await inventoryService.getLowStockInventory();
     res.json(inventory);
   } catch (error) {
     next(error);
   }
-}
+};
 
-export async function updateInventory(req: Request, res: Response, next: NextFunction) {
+export const updateInventory: RequestHandler<{ productId: string }> = async (req, res, next) => {
   try {
     const { quantity, low_stock_threshold } = req.body;
     const inventory = await inventoryService.updateInventory(
@@ -31,9 +31,9 @@ export async function updateInventory(req: Request, res: Response, next: NextFun
   } catch (error) {
     next(error);
   }
-}
+};
 
-export async function restockInventory(req: Request, res: Response, next: NextFunction) {
+export const restockInventory: RequestHandler = async (req, res, next) => {
   try {
     const { product_id, quantity } = req.body;
     const inventory = await inventoryService.restockInventory(product_id, quantity);
@@ -41,4 +41,4 @@ export async function restockInventory(req: Request, res: Response, next: NextFu
   } catch (error) {
     next(error);
   }
-}
+};
