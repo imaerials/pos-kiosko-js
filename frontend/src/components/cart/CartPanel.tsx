@@ -16,27 +16,27 @@ export function CartPanel({ onCheckout }: CartPanelProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <ShoppingCart size={20} className="text-gray-600" />
-            <h2 className="text-lg font-semibold">Current Order</h2>
+            <h2 className="text-lg font-semibold">Pedido actual</h2>
           </div>
           {items.length > 0 && (
             <button
               onClick={clearCart}
               className="p-1 text-gray-400 hover:text-red-500"
-              title="Clear cart"
+              title="Vaciar carrito"
             >
               <Trash2 size={18} />
             </button>
           )}
         </div>
-        <p className="text-sm text-gray-500 mt-1">{items.length} item{items.length !== 1 ? 's' : ''}</p>
+        <p className="text-sm text-gray-500 mt-1">{items.length} {items.length !== 1 ? 'ítems' : 'ítem'}</p>
       </div>
 
       <div className="flex-1 overflow-auto p-4">
         {items.length === 0 ? (
           <div className="text-center py-12 text-gray-400">
             <ShoppingCart size={48} className="mx-auto mb-3 opacity-50" />
-            <p>Cart is empty</p>
-            <p className="text-sm mt-1">Add products to get started</p>
+            <p>El carrito está vacío</p>
+            <p className="text-sm mt-1">Agregá productos para comenzar</p>
           </div>
         ) : (
           items.map((item) => (
@@ -57,7 +57,7 @@ export function CartPanel({ onCheckout }: CartPanelProps) {
             <span className="font-medium">${getSubtotal().toFixed(2)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">Tax (8%)</span>
+            <span className="text-gray-600">Impuesto (8%)</span>
             <span className="font-medium">${getTax().toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-lg font-bold pt-2 border-t">
@@ -72,7 +72,7 @@ export function CartPanel({ onCheckout }: CartPanelProps) {
           className="w-full"
           size="lg"
         >
-          Pay ${getTotal().toFixed(2)}
+          Pagar ${getTotal().toFixed(2)}
         </Button>
       </div>
     </div>

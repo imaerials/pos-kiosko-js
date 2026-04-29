@@ -6,24 +6,24 @@ import type { Transaction } from '../types';
 
 function TransactionDetailModal({ transaction, onClose }: { transaction: Transaction; onClose: () => void }) {
   return (
-    <Modal isOpen onClose={onClose} title={`Receipt ${transaction.receipt_number}`} size="lg">
+    <Modal isOpen onClose={onClose} title={`Recibo ${transaction.receipt_number}`} size="lg">
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
-          <span className="text-gray-500">Date</span>
+          <span className="text-gray-500">Fecha</span>
           <span>{new Date(transaction.created_at).toLocaleString()}</span>
           {transaction.user && (
             <>
-              <span className="text-gray-500">Cashier</span>
+              <span className="text-gray-500">Cajero/a</span>
               <span>{transaction.user.name}</span>
             </>
           )}
           {transaction.customer_name && (
             <>
-              <span className="text-gray-500">Customer</span>
+              <span className="text-gray-500">Cliente</span>
               <span>{transaction.customer_name}</span>
             </>
           )}
-          <span className="text-gray-500">Status</span>
+          <span className="text-gray-500">Estado</span>
           <span className={`font-medium ${
             transaction.status === 'completed' ? 'text-gray-700' :
             transaction.status === 'refunded' ? 'text-orange-600' : 'text-red-600'
@@ -36,10 +36,10 @@ function TransactionDetailModal({ transaction, onClose }: { transaction: Transac
           <table className="w-full text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-2 text-left font-medium text-gray-500">Product</th>
+                <th className="px-4 py-2 text-left font-medium text-gray-500">Producto</th>
                 <th className="px-4 py-2 text-left font-medium text-gray-500">SKU</th>
-                <th className="px-4 py-2 text-right font-medium text-gray-500">Qty</th>
-                <th className="px-4 py-2 text-right font-medium text-gray-500">Unit price</th>
+                <th className="px-4 py-2 text-right font-medium text-gray-500">Cant.</th>
+                <th className="px-4 py-2 text-right font-medium text-gray-500">Precio unit.</th>
                 <th className="px-4 py-2 text-right font-medium text-gray-500">Subtotal</th>
               </tr>
             </thead>
@@ -63,12 +63,12 @@ function TransactionDetailModal({ transaction, onClose }: { transaction: Transac
             <span>${Number(transaction.subtotal).toFixed(2)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">Tax (8%)</span>
+            <span className="text-gray-500">Impuesto (8%)</span>
             <span>${Number(transaction.tax_amount).toFixed(2)}</span>
           </div>
           {Number(transaction.discount_amount) > 0 && (
             <div className="flex justify-between text-green-600">
-              <span>Discount</span>
+              <span>Descuento</span>
               <span>-${Number(transaction.discount_amount).toFixed(2)}</span>
             </div>
           )}
@@ -80,7 +80,7 @@ function TransactionDetailModal({ transaction, onClose }: { transaction: Transac
 
         <div className="border-t pt-3 space-y-1 text-sm">
           <div className="flex justify-between">
-            <span className="text-gray-500">Payment method</span>
+            <span className="text-gray-500">Método de pago</span>
             <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
               transaction.payment_method === 'cash' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
             }`}>
@@ -88,12 +88,12 @@ function TransactionDetailModal({ transaction, onClose }: { transaction: Transac
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">Amount paid</span>
+            <span className="text-gray-500">Monto pagado</span>
             <span>${Number(transaction.amount_paid).toFixed(2)}</span>
           </div>
           {Number(transaction.change_given) > 0 && (
             <div className="flex justify-between">
-              <span className="text-gray-500">Change given</span>
+              <span className="text-gray-500">Vuelto</span>
               <span>${Number(transaction.change_given).toFixed(2)}</span>
             </div>
           )}
@@ -114,30 +114,30 @@ export function TransactionsPage() {
   if (isLoading) {
     return (
       <div className="p-8 text-center">
-        <p className="text-gray-500">Loading transactions...</p>
+        <p className="text-gray-500">Cargando transacciones...</p>
       </div>
     );
   }
 
   return (
     <div className="p-6">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Transactions</h2>
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">Transacciones</h2>
 
       {transactions.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
-          <p>No transactions yet</p>
+          <p>Sin transacciones aún</p>
         </div>
       ) : (
         <div className="bg-white rounded-lg border overflow-hidden">
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Receipt #</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recibo #</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ítems</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pago</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
                 <th className="px-6 py-3" />
               </tr>
             </thead>
@@ -169,7 +169,7 @@ export function TransactionsPage() {
                       onClick={() => setSelected(tx)}
                       className="text-sm text-blue-600 hover:text-blue-800 font-medium"
                     >
-                      View
+                      Ver
                     </button>
                   </td>
                 </tr>

@@ -80,11 +80,11 @@ function ProductFormModal({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['inventory'] });
-      toast.success('Product created');
+      toast.success('Producto creado');
       onClose();
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message || 'Failed to create product');
+      toast.error(err?.response?.data?.message || 'Error al crear el producto');
     },
   });
 
@@ -101,11 +101,11 @@ function ProductFormModal({
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
-      toast.success('Product updated');
+      toast.success('Producto actualizado');
       onClose();
     },
     onError: (err: any) => {
-      toast.error(err?.response?.data?.message || 'Failed to update product');
+      toast.error(err?.response?.data?.message || 'Error al actualizar el producto');
     },
   });
 
@@ -118,28 +118,28 @@ function ProductFormModal({
   const isPending = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <Modal isOpen onClose={onClose} title={isEdit ? 'Edit Product' : 'Add Product'} size="lg">
+    <Modal isOpen onClose={onClose} title={isEdit ? 'Editar producto' : 'Agregar producto'} size="lg">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <Input label="SKU *" value={form.sku} onChange={set('sku')} required />
-          <Input label="Barcode" value={form.barcode} onChange={set('barcode')} />
+          <Input label="Código de barras" value={form.barcode} onChange={set('barcode')} />
         </div>
 
-        <Input label="Name *" value={form.name} onChange={set('name')} required />
+        <Input label="Nombre *" value={form.name} onChange={set('name')} required />
 
         <div className="grid grid-cols-2 gap-4">
-          <Input label="Price *" type="number" step="any" min="0" value={form.price} onChange={set('price')} required />
-          <Input label="Cost" type="number" step="any" min="0" value={form.cost} onChange={set('cost')} />
+          <Input label="Precio *" type="number" step="any" min="0" value={form.price} onChange={set('price')} required />
+          <Input label="Costo" type="number" step="any" min="0" value={form.cost} onChange={set('cost')} />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
           <select
             value={form.category_id}
             onChange={set('category_id')}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="">— No category —</option>
+            <option value="">— Sin categoría —</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
@@ -147,7 +147,7 @@ function ProductFormModal({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
           <textarea
             value={form.description}
             onChange={set('description')}
@@ -158,7 +158,7 @@ function ProductFormModal({
 
         {!isEdit && (
           <Input
-            label="Initial stock"
+            label="Stock inicial"
             type="number"
             min="0"
             step="1"
@@ -168,9 +168,9 @@ function ProductFormModal({
         )}
 
         <div className="flex gap-3 pt-2">
-          <Button type="button" variant="secondary" onClick={onClose} className="flex-1">Cancel</Button>
+          <Button type="button" variant="secondary" onClick={onClose} className="flex-1">Cancelar</Button>
           <Button type="submit" className="flex-1" disabled={isPending}>
-            {isPending ? 'Saving…' : isEdit ? 'Save changes' : 'Add product'}
+            {isPending ? 'Guardando…' : isEdit ? 'Guardar cambios' : 'Agregar producto'}
           </Button>
         </div>
       </form>
@@ -196,26 +196,26 @@ export function ProductsPage() {
     mutationFn: (id: string) => productsApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
-      toast.success('Product deleted');
+      toast.success('Producto eliminado');
     },
-    onError: () => toast.error('Failed to delete product'),
+    onError: () => toast.error('Error al eliminar el producto'),
   });
 
   const handleDelete = (product: Product) => {
-    if (!confirm(`Delete "${product.name}"? This cannot be undone.`)) return;
+    if (!confirm(`¿Eliminar "${product.name}"? Esta acción no se puede deshacer.`)) return;
     deleteMutation.mutate(product.id);
   };
 
   if (isLoading) {
-    return <div className="p-8 text-center text-gray-500">Loading products…</div>;
+    return <div className="p-8 text-center text-gray-500">Cargando productos…</div>;
   }
 
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Products</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Productos</h2>
         <Button onClick={() => setModalProduct(null)}>
-          <Plus size={18} className="mr-1" /> Add product
+          <Plus size={18} className="mr-1" /> Agregar producto
         </Button>
       </div>
 
@@ -224,9 +224,9 @@ export function ProductsPage() {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Precio</th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
               <th className="px-6 py-3" />
             </tr>
@@ -254,14 +254,14 @@ export function ProductsPage() {
                       <button
                         onClick={() => setModalProduct(p)}
                         className="p-1.5 text-gray-400 hover:text-blue-600 transition-colors"
-                        title="Edit"
+                        title="Editar"
                       >
                         <Pencil size={16} />
                       </button>
                       <button
                         onClick={() => handleDelete(p)}
                         className="p-1.5 text-gray-400 hover:text-red-600 transition-colors"
-                        title="Delete"
+                        title="Eliminar"
                       >
                         <Trash2 size={16} />
                       </button>
@@ -272,7 +272,7 @@ export function ProductsPage() {
             })}
             {products.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-6 py-12 text-center text-gray-400">No products yet</td>
+                <td colSpan={6} className="px-6 py-12 text-center text-gray-400">Sin productos aún</td>
               </tr>
             )}
           </tbody>

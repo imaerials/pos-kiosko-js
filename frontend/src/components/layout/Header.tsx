@@ -26,21 +26,21 @@ export function Header() {
           </div>
           <div>
             <h1 className="text-xl font-bold text-gray-900">Grocery POS</h1>
-            <p className="text-sm text-gray-500">Point of Sale System</p>
+            <p className="text-sm text-gray-500">Sistema de Punto de Venta</p>
           </div>
         </div>
 
         <nav className="flex items-center gap-2">
           <NavItem icon={<Package size={20} />} label="POS" path="/" />
-          <NavItem icon={<ClipboardList size={20} />} label="Transactions" path="/transactions" />
+          <NavItem icon={<ClipboardList size={20} />} label="Transacciones" path="/transactions" />
           {user?.role !== 'cashier' && (
-            <NavItem icon={<Box size={20} />} label="Products" path="/products" />
+            <NavItem icon={<Box size={20} />} label="Productos" path="/products" />
           )}
           {user?.role !== 'cashier' && (
-            <NavItem icon={<Settings size={20} />} label="Inventory" path="/inventory" />
+            <NavItem icon={<Settings size={20} />} label="Inventario" path="/inventory" />
           )}
           {user?.role === 'admin' && (
-            <NavItem icon={<TrendingUp size={20} />} label="Finance" path="/finance" />
+            <NavItem icon={<TrendingUp size={20} />} label="Finanzas" path="/finance" />
           )}
         </nav>
 
@@ -52,7 +52,7 @@ export function Header() {
           <button
             onClick={handleLogout}
             className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-            title="Logout"
+            title="Cerrar sesión"
           >
             <LogOut size={20} />
           </button>

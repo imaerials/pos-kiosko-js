@@ -31,7 +31,7 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
         </button>
       </div>
       {product.quantity !== undefined && product.quantity < 20 && (
-        <p className="text-xs text-orange-500 mt-2">Low stock: {product.quantity} left</p>
+        <p className="text-xs text-orange-500 mt-2">Stock bajo: quedan {product.quantity}</p>
       )}
     </div>
   );

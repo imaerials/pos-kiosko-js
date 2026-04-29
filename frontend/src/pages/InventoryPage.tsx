@@ -17,35 +17,35 @@ export function InventoryPage() {
       inventoryApi.update(productId, quantity),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory'] });
-      toast.success('Inventory updated');
+      toast.success('Inventario actualizado');
     },
     onError: () => {
-      toast.error('Failed to update inventory');
+      toast.error('Error al actualizar el inventario');
     },
   });
 
   if (isLoading) {
     return (
       <div className="p-8 text-center">
-        <p className="text-gray-500">Loading inventory...</p>
+        <p className="text-gray-500">Cargando inventario...</p>
       </div>
     );
   }
 
   return (
     <div className="p-6">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Inventory Management</h2>
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">Gestión de inventario</h2>
 
       <div className="bg-white rounded-lg border overflow-hidden">
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Threshold</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Umbral mínimo</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
@@ -83,7 +83,7 @@ function InventoryRow({
   return (
     <tr className={isLowStock ? 'bg-orange-50' : ''}>
       <td className="px-6 py-4 whitespace-nowrap font-mono text-sm">{item.sku || 'N/A'}</td>
-      <td className="px-6 py-4 whitespace-nowrap font-medium">{item.product_name || 'Unknown'}</td>
+      <td className="px-6 py-4 whitespace-nowrap font-medium">{item.product_name || 'Desconocido'}</td>
       <td className="px-6 py-4 whitespace-nowrap">
         {editing ? (
           <Input
@@ -100,23 +100,23 @@ function InventoryRow({
       <td className="px-6 py-4 whitespace-nowrap">
         {isLowStock ? (
           <span className="px-2 py-1 text-xs font-medium rounded-full bg-orange-100 text-orange-700">
-            Low Stock
+            Stock bajo
           </span>
         ) : (
           <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">
-            In Stock
+            En stock
           </span>
         )}
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
         {editing ? (
           <div className="flex gap-2">
-            <Button size="sm" onClick={handleSave}>Save</Button>
-            <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>Cancel</Button>
+            <Button size="sm" onClick={handleSave}>Guardar</Button>
+            <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>Cancelar</Button>
           </div>
         ) : (
           <Button size="sm" variant="secondary" onClick={() => setEditing(true)}>
-            Edit
+            Editar
           </Button>
         )}
       </td>

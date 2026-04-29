@@ -28,7 +28,7 @@ export function POSPage() {
 
   const handleAddToCart = (product: Product) => {
     addItem(product);
-    toast.success(`Added ${product.name} to cart`);
+    toast.success(`${product.name} agregado al carrito`);
   };
 
   const handleCheckoutComplete = async (paymentMethod: 'cash' | 'card', amountPaid: number) => {
@@ -50,7 +50,7 @@ export function POSPage() {
       setCheckoutOpen(false);
       setReceiptOpen(true);
     } catch (error) {
-      toast.error('Failed to complete transaction');
+      toast.error('Error al completar la transacción');
       console.error(error);
     }
   };

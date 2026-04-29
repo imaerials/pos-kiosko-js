@@ -21,10 +21,10 @@ export function LoginPage() {
     try {
       const response = await authApi.login(email, password);
       setUser(response.user);
-      toast.success(`Welcome, ${response.user.name}!`);
+      toast.success(`Bienvenido, ${response.user.name}!`);
       navigate('/');
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Login failed');
+      toast.error(error.response?.data?.message || 'Error al iniciar sesión');
     } finally {
       setIsLoading(false);
     }
@@ -38,12 +38,12 @@ export function LoginPage() {
             <ShoppingCart className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Grocery POS</h1>
-          <p className="text-gray-500 mt-1">Sign in to continue</p>
+          <p className="text-gray-500 mt-1">Ingresá para continuar</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
-            label="Email"
+            label="Correo electrónico"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -51,20 +51,20 @@ export function LoginPage() {
             required
           />
           <Input
-            label="Password"
+            label="Contraseña"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter your password"
+            placeholder="Ingresá tu contraseña"
             required
           />
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? 'Signing in...' : 'Sign In'}
+            {isLoading ? 'Ingresando...' : 'Ingresar'}
           </Button>
         </form>
 
         <div className="mt-8 pt-6 border-t">
-          <p className="text-sm text-gray-500 text-center mb-3">Demo credentials:</p>
+          <p className="text-sm text-gray-500 text-center mb-3">Credenciales de prueba:</p>
           <div className="space-y-2 text-sm">
             <CredentialRow email="admin@pos.local" password="admin123" />
             <CredentialRow email="manager@pos.local" password="manager123" />

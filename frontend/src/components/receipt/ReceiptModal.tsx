@@ -1,6 +1,6 @@
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
-import { Printer, X } from 'lucide-react';
+import { Printer } from 'lucide-react';
 import type { Transaction } from '../../types';
 
 interface ReceiptModalProps {
@@ -17,18 +17,18 @@ export function ReceiptModal({ isOpen, onClose, transaction }: ReceiptModalProps
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Receipt" size="sm">
+    <Modal isOpen={isOpen} onClose={onClose} title="Recibo" size="sm">
       <div className="space-y-4" id="receipt-content">
         <div className="text-center border-b pb-4">
           <h3 className="text-lg font-bold">Grocery POS</h3>
-          <p className="text-sm text-gray-500">Thank you for shopping with us!</p>
+          <p className="text-sm text-gray-500">¡Gracias por su compra!</p>
         </div>
 
         <div className="text-sm space-y-1">
-          <p><span className="text-gray-500">Receipt #:</span> {transaction.receipt_number}</p>
-          <p><span className="text-gray-500">Date:</span> {new Date(transaction.created_at).toLocaleString()}</p>
+          <p><span className="text-gray-500">Recibo #:</span> {transaction.receipt_number}</p>
+          <p><span className="text-gray-500">Fecha:</span> {new Date(transaction.created_at).toLocaleString()}</p>
           {transaction.user && (
-            <p><span className="text-gray-500">Cashier:</span> {transaction.user.name}</p>
+            <p><span className="text-gray-500">Cajero/a:</span> {transaction.user.name}</p>
           )}
         </div>
 
@@ -47,12 +47,12 @@ export function ReceiptModal({ isOpen, onClose, transaction }: ReceiptModalProps
             <span>${Number(transaction.subtotal).toFixed(2)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">Tax</span>
+            <span className="text-gray-600">Impuesto</span>
             <span>${Number(transaction.tax_amount).toFixed(2)}</span>
           </div>
           {Number(transaction.discount_amount) > 0 && (
             <div className="flex justify-between text-green-600">
-              <span>Discount</span>
+              <span>Descuento</span>
               <span>-${Number(transaction.discount_amount).toFixed(2)}</span>
             </div>
           )}
@@ -63,20 +63,20 @@ export function ReceiptModal({ isOpen, onClose, transaction }: ReceiptModalProps
         </div>
 
         <div className="text-sm space-y-1">
-          <p><span className="text-gray-500">Payment:</span> {transaction.payment_method.toUpperCase()}</p>
-          <p><span className="text-gray-500">Paid:</span> ${Number(transaction.amount_paid).toFixed(2)}</p>
+          <p><span className="text-gray-500">Pago:</span> {transaction.payment_method.toUpperCase()}</p>
+          <p><span className="text-gray-500">Pagado:</span> ${Number(transaction.amount_paid).toFixed(2)}</p>
           {Number(transaction.change_given) > 0 && (
-            <p><span className="text-gray-500">Change:</span> ${Number(transaction.change_given).toFixed(2)}</p>
+            <p><span className="text-gray-500">Vuelto:</span> ${Number(transaction.change_given).toFixed(2)}</p>
           )}
         </div>
 
         <div className="flex gap-3 pt-4">
           <Button variant="secondary" onClick={handlePrint} className="flex-1">
             <Printer size={18} className="mr-2" />
-            Print
+            Imprimir
           </Button>
           <Button onClick={onClose} className="flex-1">
-            Done
+            Listo
           </Button>
         </div>
       </div>

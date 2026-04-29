@@ -21,7 +21,7 @@ export function CheckoutModal({ isOpen, onClose, total, onComplete }: CheckoutMo
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (paymentMethod === 'cash' && parsedAmount < total) {
-      alert('Insufficient payment amount');
+      alert('Monto insuficiente');
       return;
     }
     onComplete(paymentMethod, parsedAmount);
@@ -35,7 +35,7 @@ export function CheckoutModal({ isOpen, onClose, total, onComplete }: CheckoutMo
   ].filter((v, i, a) => a.indexOf(v) === i && v >= total) : [];
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Checkout" size="md">
+    <Modal isOpen={isOpen} onClose={onClose} title="Cobrar" size="md">
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="flex gap-2">
           <button
@@ -48,7 +48,7 @@ export function CheckoutModal({ isOpen, onClose, total, onComplete }: CheckoutMo
             }`}
           >
             <Banknote size={24} />
-            <span className="font-medium">Cash</span>
+            <span className="font-medium">Efectivo</span>
           </button>
           <button
             type="button"
@@ -60,14 +60,14 @@ export function CheckoutModal({ isOpen, onClose, total, onComplete }: CheckoutMo
             }`}
           >
             <CreditCard size={24} />
-            <span className="font-medium">Card</span>
+            <span className="font-medium">Tarjeta</span>
           </button>
         </div>
 
         {paymentMethod === 'cash' && (
           <>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Quick amounts</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Montos rápidos</label>
               <div className="flex flex-wrap gap-2">
                 {quickAmounts.map((amount) => (
                   <button
@@ -83,7 +83,7 @@ export function CheckoutModal({ isOpen, onClose, total, onComplete }: CheckoutMo
             </div>
 
             <Input
-              label="Amount Received"
+              label="Monto recibido"
               type="number"
               step="any"
               min={Math.ceil(total * 100) / 100}
@@ -95,7 +95,7 @@ export function CheckoutModal({ isOpen, onClose, total, onComplete }: CheckoutMo
 
             {parsedAmount >= total && (
               <div className={`p-4 rounded-lg ${changeDue > 0 ? 'bg-green-50' : 'bg-gray-50'}`}>
-                <p className="text-sm text-gray-600">Change Due</p>
+                <p className="text-sm text-gray-600">Vuelto</p>
                 <p className="text-2xl font-bold text-green-600">${changeDue.toFixed(2)}</p>
               </div>
             )}
@@ -105,18 +105,18 @@ export function CheckoutModal({ isOpen, onClose, total, onComplete }: CheckoutMo
         {paymentMethod === 'card' && (
           <div className="p-4 bg-gray-50 rounded-lg text-center">
             <CreditCard size={48} className="mx-auto mb-3 text-gray-400" />
-            <p className="font-medium">Card Payment</p>
-            <p className="text-sm text-gray-500 mt-1">Customer should tap or insert card</p>
+            <p className="font-medium">Pago con tarjeta</p>
+            <p className="text-sm text-gray-500 mt-1">El cliente debe acercar o insertar la tarjeta</p>
             <p className="text-lg font-bold mt-2">${total.toFixed(2)}</p>
           </div>
         )}
 
         <div className="flex gap-3 pt-4">
           <Button type="button" variant="secondary" onClick={onClose} className="flex-1">
-            Cancel
+            Cancelar
           </Button>
           <Button type="submit" className="flex-1" disabled={paymentMethod === 'cash' && parsedAmount < total}>
-            Complete Sale
+            Completar venta
           </Button>
         </div>
       </form>

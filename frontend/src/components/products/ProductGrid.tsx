@@ -25,7 +25,7 @@ export function ProductGrid({ products, categories, onAddToCart }: ProductGridPr
       <div className="p-4 border-b space-y-3">
         <input
           type="text"
-          placeholder="Search by name, SKU, or barcode..."
+          placeholder="Buscar por nombre, SKU o código de barras..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -39,7 +39,7 @@ export function ProductGrid({ products, categories, onAddToCart }: ProductGridPr
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            All
+            Todos
           </button>
           {categories.map((cat) => (
             <button
@@ -60,7 +60,7 @@ export function ProductGrid({ products, categories, onAddToCart }: ProductGridPr
       <div className="flex-1 overflow-auto p-4">
         {filteredProducts.length === 0 ? (
           <div className="text-center py-12 text-gray-500">
-            <p>No products found</p>
+            <p>No se encontraron productos</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">

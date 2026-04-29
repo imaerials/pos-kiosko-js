@@ -9,10 +9,10 @@ import { financeApi } from '../services/api';
 type Period = 'today' | 'week' | 'month' | 'year';
 
 const PERIODS: { key: Period; label: string }[] = [
-  { key: 'today', label: 'Today' },
-  { key: 'week',  label: 'Last 7 days' },
-  { key: 'month', label: 'Last 30 days' },
-  { key: 'year',  label: 'Last 365 days' },
+  { key: 'today', label: 'Hoy' },
+  { key: 'week',  label: 'Últimos 7 días' },
+  { key: 'month', label: 'Últimos 30 días' },
+  { key: 'year',  label: 'Últimos 365 días' },
 ];
 
 function fmt(n: number) {
@@ -72,7 +72,7 @@ export function FinancePage() {
   });
 
   const dailyChartData = (data?.daily_revenue ?? []).map(d => ({
-    label: new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    label: new Date(d.date).toLocaleDateString('es-AR', { month: 'short', day: 'numeric' }),
     value: d.revenue,
   }));
 
@@ -80,9 +80,9 @@ export function FinancePage() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
+      {/* Encabezado */}
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Finance</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Finanzas</h2>
         <div className="flex items-center gap-3">
           <div className="flex rounded-lg border bg-white overflow-hidden text-sm">
             {PERIODS.map(p => (
@@ -102,7 +102,7 @@ export function FinancePage() {
           <button
             onClick={() => refetch()}
             className="p-2 text-gray-400 hover:text-gray-700 transition-colors"
-            title="Refresh"
+            title="Actualizar"
           >
             <RefreshCw size={18} className={isFetching ? 'animate-spin' : ''} />
           </button>
@@ -110,78 +110,78 @@ export function FinancePage() {
       </div>
 
       {isLoading ? (
-        <div className="text-center py-16 text-gray-400">Loading…</div>
+        <div className="text-center py-16 text-gray-400">Cargando…</div>
       ) : !data ? null : (
         <>
-          {/* Income KPIs */}
+          {/* KPIs de ingresos */}
           <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Income</p>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Ingresos</p>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <KpiCard
-                label="Gross Revenue"
+                label="Ingresos brutos"
                 value={fmt(data.revenue)}
-                sub={`${data.transaction_count} transactions`}
+                sub={`${data.transaction_count} transacciones`}
                 icon={<TrendingUp size={20} className="text-white" />}
                 color="bg-blue-500"
                 positive
               />
               <KpiCard
-                label="Net Revenue"
+                label="Ingresos netos"
                 value={fmt(data.net_revenue)}
-                sub={`After ${data.refund_count} refund(s)`}
+                sub={`Después de ${data.refund_count} devolución(es)`}
                 icon={<DollarSign size={20} className="text-white" />}
                 color="bg-green-500"
                 positive
               />
               <KpiCard
-                label="Gross Profit"
+                label="Ganancia bruta"
                 value={fmt(data.gross_profit)}
-                sub="Net revenue − COGS"
+                sub="Ingresos netos − COGS"
                 icon={<BarChart3 size={20} className="text-white" />}
                 color={data.gross_profit >= 0 ? 'bg-emerald-500' : 'bg-red-500'}
                 positive={data.gross_profit >= 0}
               />
               <KpiCard
-                label="Avg. Transaction"
+                label="Ticket promedio"
                 value={fmt(data.avg_transaction)}
-                sub="Per completed sale"
+                sub="Por venta completada"
                 icon={<ShoppingCart size={20} className="text-white" />}
                 color="bg-purple-500"
               />
             </div>
           </div>
 
-          {/* Outcome KPIs */}
+          {/* KPIs de egresos */}
           <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Outcomes</p>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Egresos</p>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <KpiCard
-                label="Cost of Goods Sold"
+                label="Costo de mercadería vendida"
                 value={fmt(data.cogs)}
-                sub="Based on product cost"
+                sub="Basado en el costo del producto"
                 icon={<TrendingDown size={20} className="text-white" />}
                 color="bg-orange-500"
                 positive={false}
               />
               <KpiCard
-                label="Refunds"
+                label="Devoluciones"
                 value={fmt(data.refunds)}
-                sub={`${data.refund_count} transaction(s)`}
+                sub={`${data.refund_count} transacción(es)`}
                 icon={<RefreshCw size={20} className="text-white" />}
                 color="bg-red-500"
                 positive={false}
               />
               <KpiCard
-                label="Tax Collected"
+                label="Impuestos recaudados"
                 value={fmt(data.tax_collected)}
-                sub="8% sales tax"
+                sub="8% impuesto a las ventas"
                 icon={<ReceiptText size={20} className="text-white" />}
                 color="bg-yellow-500"
               />
               <KpiCard
-                label="Discounts Given"
+                label="Descuentos aplicados"
                 value={fmt(data.discounts_given)}
-                sub="Total discount amount"
+                sub="Monto total de descuentos"
                 icon={<TrendingDown size={20} className="text-white" />}
                 color="bg-pink-500"
                 positive={false}
@@ -189,25 +189,25 @@ export function FinancePage() {
             </div>
           </div>
 
-          {/* Charts & Tables row */}
+          {/* Gráficos y tablas */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Daily revenue chart */}
+            {/* Gráfico de ingresos diarios */}
             <div className="lg:col-span-2 bg-white rounded-xl border p-5">
-              <h3 className="font-semibold text-gray-800 mb-4">Revenue over time</h3>
+              <h3 className="font-semibold text-gray-800 mb-4">Ingresos en el tiempo</h3>
               {dailyChartData.length === 0 ? (
                 <div className="h-36 flex items-center justify-center text-gray-400 text-sm">
-                  No data for this period
+                  Sin datos para este período
                 </div>
               ) : (
                 <BarChart data={dailyChartData} />
               )}
             </div>
 
-            {/* Payment methods */}
+            {/* Métodos de pago */}
             <div className="bg-white rounded-xl border p-5">
-              <h3 className="font-semibold text-gray-800 mb-4">Payment methods</h3>
+              <h3 className="font-semibold text-gray-800 mb-4">Métodos de pago</h3>
               {data.payment_methods.length === 0 ? (
-                <p className="text-sm text-gray-400">No data</p>
+                <p className="text-sm text-gray-400">Sin datos</p>
               ) : (
                 <div className="space-y-3">
                   {data.payment_methods.map(pm => {
@@ -229,7 +229,7 @@ export function FinancePage() {
                             style={{ width: `${pct}%` }}
                           />
                         </div>
-                        <p className="text-xs text-gray-400 mt-0.5">{pm.count} transaction(s) · {pct.toFixed(1)}%</p>
+                        <p className="text-xs text-gray-400 mt-0.5">{pm.count} transacción(es) · {pct.toFixed(1)}%</p>
                       </div>
                     );
                   })}
@@ -238,22 +238,22 @@ export function FinancePage() {
             </div>
           </div>
 
-          {/* Top products */}
+          {/* Productos más vendidos */}
           <div className="bg-white rounded-xl border overflow-hidden">
             <div className="px-5 py-4 border-b">
-              <h3 className="font-semibold text-gray-800">Top products by revenue</h3>
+              <h3 className="font-semibold text-gray-800">Productos más vendidos por ingreso</h3>
             </div>
             {data.top_products.length === 0 ? (
-              <p className="px-5 py-6 text-sm text-gray-400">No sales in this period</p>
+              <p className="px-5 py-6 text-sm text-gray-400">Sin ventas en este período</p>
             ) : (
               <table className="w-full text-sm">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-5 py-3 text-left font-medium text-gray-500">#</th>
-                    <th className="px-5 py-3 text-left font-medium text-gray-500">Product</th>
-                    <th className="px-5 py-3 text-right font-medium text-gray-500">Units sold</th>
-                    <th className="px-5 py-3 text-right font-medium text-gray-500">Revenue</th>
-                    <th className="px-5 py-3 text-right font-medium text-gray-500">Share</th>
+                    <th className="px-5 py-3 text-left font-medium text-gray-500">Producto</th>
+                    <th className="px-5 py-3 text-right font-medium text-gray-500">Unidades vendidas</th>
+                    <th className="px-5 py-3 text-right font-medium text-gray-500">Ingresos</th>
+                    <th className="px-5 py-3 text-right font-medium text-gray-500">Participación</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
