@@ -7,7 +7,7 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "db:seed": "node src/db/seed.js"
+    "db:seed": "tsx src/db/seed.ts"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
