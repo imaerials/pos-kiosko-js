@@ -79,6 +79,12 @@ docker compose exec backend npm run db:seed         # products, categories, inve
 docker compose exec backend npm run db:seed:users   # demo users
 ```
 
+The compose file works out of the box with sensible defaults. To override (custom ports, JWT secret, etc.), copy the root example file and edit it — `docker compose` auto-loads `.env` from the project root:
+
+```bash
+cp .env.example .env
+```
+
 ### Option 2: Run services locally
 
 Requires Node.js 20+ and a running Postgres 16 instance. Start Postgres with `docker compose up postgres` if you don't have one.
@@ -87,43 +93,33 @@ Requires Node.js 20+ and a running Postgres 16 instance. Start Postgres with `do
 
 ```bash
 cd backend
+cp .env.example .env       # adjust DB_HOST=localhost if Postgres is on the host
 npm install
-```
-
-Create `backend/.env`:
-
-```env
-NODE_ENV=development
-PORT=3001
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=pos_kiosko
-DB_USER=postgres
-DB_PASSWORD=postgres
-JWT_SECRET=dev-secret-change-me
-```
-
-Then:
-
-```bash
 npm run db:seed
 npm run db:seed:users
-npm run dev          # tsx watch
+npm run dev                # tsx watch
 ```
 
 **Frontend** (`http://localhost:5173`):
 
 ```bash
 cd frontend
+cp .env.example .env       # only needed if the backend is on a non-default URL
 npm install
 npm run dev
 ```
 
-If the backend is on a non-default URL, create `frontend/.env`:
+### Environment variables
 
-```env
-VITE_API_URL=http://localhost:3001/api
-```
+Three example files cover all configuration:
+
+| File | Loaded by | Purpose |
+|------|-----------|---------|
+| `.env` (root) | `docker compose` | Overrides for the Docker stack (ports, DB creds, JWT secret) |
+| `backend/.env` | `dotenv` in `backend/src/config/env.ts` | Required when running the backend locally outside Docker |
+| `frontend/.env` | Vite | `VITE_API_URL` if the backend isn't at `http://localhost:3001/api` |
+
+All three are gitignored. Copy the corresponding `.env.example` and uncomment / edit the values you need to override — defaults match the Docker setup.
 
 ### Useful scripts
 

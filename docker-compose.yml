@@ -1,20 +1,18 @@
-version: '3.9'
-
 services:
   postgres:
     image: postgres:16-alpine
     container_name: pos-postgres
     environment:
-      POSTGRES_DB: pos_kiosko
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${DB_NAME:-pos_kiosko}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./backend/src/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d pos_kiosko"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-pos_kiosko}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -25,16 +23,19 @@ services:
       dockerfile: Dockerfile
     container_name: pos-backend
     environment:
-      NODE_ENV: development
-      PORT: 3001
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: ${BACKEND_PORT:-3001}
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_NAME: pos_kiosko
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      JWT_SECRET: your-super-secret-jwt-key-for-development-only
+      DB_NAME: ${DB_NAME:-pos_kiosko}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-for-development-only}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+      FRONTEND_URL: ${FRONTEND_URL:-}
     ports:
-      - "3001:3001"
+      - "${BACKEND_PORT:-3001}:3001"
     volumes:
       - ./backend/src:/app/src:ro
       - backend_node_modules:/app/node_modules
@@ -49,9 +50,9 @@ services:
       dockerfile: Dockerfile
     container_name: pos-frontend
     environment:
-      VITE_API_URL: http://localhost:3001/api
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:3001/api}
     ports:
-      - "5173:5173"
+      - "${FRONTEND_PORT:-5173}:5173"
     volumes:
       - ./frontend/src:/app/src:ro
       - frontend_node_modules:/app/node_modules
