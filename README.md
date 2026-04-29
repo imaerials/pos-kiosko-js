@@ -57,17 +57,85 @@ Services:
 
 ## Development
 
+### Option 1: Docker (recommended)
+
+Runs Postgres, backend, and frontend with hot reload. Source folders are bind-mounted, so edits in `backend/src` and `frontend/src` reload automatically.
+
 ```bash
-# Backend
+docker compose up --build              # full stack
+docker compose up postgres              # database only
+docker compose up backend               # API only (needs postgres)
+docker compose up frontend              # Vite dev server only
+
+docker compose logs -f backend          # tail logs
+docker compose down                     # stop
+docker compose down -v                  # stop + wipe DB volume
+```
+
+Seed the database (after Postgres is up):
+
+```bash
+docker compose exec backend npm run db:seed         # products, categories, inventory
+docker compose exec backend npm run db:seed:users   # demo users
+```
+
+### Option 2: Run services locally
+
+Requires Node.js 20+ and a running Postgres 16 instance. Start Postgres with `docker compose up postgres` if you don't have one.
+
+**Backend** (`http://localhost:3001`):
+
+```bash
 cd backend
 npm install
-npm run dev
+```
 
-# Frontend
+Create `backend/.env`:
+
+```env
+NODE_ENV=development
+PORT=3001
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=pos_kiosko
+DB_USER=postgres
+DB_PASSWORD=postgres
+JWT_SECRET=dev-secret-change-me
+```
+
+Then:
+
+```bash
+npm run db:seed
+npm run db:seed:users
+npm run dev          # tsx watch
+```
+
+**Frontend** (`http://localhost:5173`):
+
+```bash
 cd frontend
 npm install
 npm run dev
 ```
+
+If the backend is on a non-default URL, create `frontend/.env`:
+
+```env
+VITE_API_URL=http://localhost:3001/api
+```
+
+### Useful scripts
+
+| Location | Command | Purpose |
+|----------|---------|---------|
+| backend  | `npm run dev` | tsx watch mode |
+| backend  | `npm run build` / `npm start` | compile + run production build |
+| backend  | `npm run db:seed` | seed products/categories/inventory |
+| backend  | `npm run db:seed:users` | seed demo users |
+| frontend | `npm run dev` | Vite dev server |
+| frontend | `npm run build` | production build |
+| frontend | `npm run preview` | preview built bundle |
 
 ## API Endpoints
 
