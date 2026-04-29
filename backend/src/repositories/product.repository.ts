@@ -1,64 +1,78 @@
-import { query } from '../config/database.js';
-import { Product, Inventory } from '../types/index.js';
+import { and, asc, eq } from 'drizzle-orm';
+import { db } from '../db/index.js';
+import { categories, inventory, products } from '../db/schema.js';
+import type { Product } from '../types/index.js';
 
 export interface ProductWithInventory extends Product {
-  inventory?: Inventory;
+  quantity: number | null;
+  low_stock_threshold: number | null;
+  last_restocked_at: Date | null;
+  category_name: string | null;
+  category_slug: string | null;
 }
 
+const productSelect = {
+  id: products.id,
+  sku: products.sku,
+  barcode: products.barcode,
+  name: products.name,
+  description: products.description,
+  price: products.price,
+  cost: products.cost,
+  category_id: products.category_id,
+  image_url: products.image_url,
+  is_active: products.is_active,
+  created_at: products.created_at,
+  updated_at: products.updated_at,
+  quantity: inventory.quantity,
+  low_stock_threshold: inventory.low_stock_threshold,
+  last_restocked_at: inventory.last_restocked_at,
+  category_name: categories.name,
+  category_slug: categories.slug,
+};
+
 export async function findAllProducts(categoryId?: string): Promise<ProductWithInventory[]> {
-  let sql = `
-    SELECT p.*, i.quantity, i.low_stock_threshold, i.last_restocked_at,
-           c.name as category_name, c.slug as category_slug
-    FROM products p
-    LEFT JOIN inventory i ON p.id = i.product_id
-    LEFT JOIN categories c ON p.category_id = c.id
-    WHERE p.is_active = true
-  `;
-  const params: any[] = [];
+  const baseQuery = db.select(productSelect)
+    .from(products)
+    .leftJoin(inventory, eq(products.id, inventory.product_id))
+    .leftJoin(categories, eq(products.category_id, categories.id));
 
   if (categoryId) {
-    sql += ` AND p.category_id = $1`;
-    params.push(categoryId);
+    return baseQuery
+      .where(and(eq(products.is_active, true), eq(products.category_id, categoryId)))
+      .orderBy(asc(categories.sort_order), asc(products.name));
   }
 
-  sql += ' ORDER BY c.sort_order, p.name';
-
-  const result = await query<ProductWithInventory>(sql, params);
-  return result.rows;
+  return baseQuery
+    .where(eq(products.is_active, true))
+    .orderBy(asc(categories.sort_order), asc(products.name));
 }
 
 export async function findProductById(id: string): Promise<ProductWithInventory | null> {
-  const result = await query<ProductWithInventory>(
-    `SELECT p.*, i.quantity, i.low_stock_threshold, i.last_restocked_at,
-            c.name as category_name, c.slug as category_slug
-     FROM products p
-     LEFT JOIN inventory i ON p.id = i.product_id
-     LEFT JOIN categories c ON p.category_id = c.id
-     WHERE p.id = $1 AND p.is_active = true`,
-    [id]
-  );
-  return result.rows[0] || null;
+  const [row] = await db.select(productSelect)
+    .from(products)
+    .leftJoin(inventory, eq(products.id, inventory.product_id))
+    .leftJoin(categories, eq(products.category_id, categories.id))
+    .where(and(eq(products.id, id), eq(products.is_active, true)))
+    .limit(1);
+  return row ?? null;
 }
 
 export async function findProductByBarcode(barcode: string): Promise<ProductWithInventory | null> {
-  const result = await query<ProductWithInventory>(
-    `SELECT p.*, i.quantity, i.low_stock_threshold, i.last_restocked_at,
-            c.name as category_name, c.slug as category_slug
-     FROM products p
-     LEFT JOIN inventory i ON p.id = i.product_id
-     LEFT JOIN categories c ON p.category_id = c.id
-     WHERE p.barcode = $1 AND p.is_active = true`,
-    [barcode]
-  );
-  return result.rows[0] || null;
+  const [row] = await db.select(productSelect)
+    .from(products)
+    .leftJoin(inventory, eq(products.id, inventory.product_id))
+    .leftJoin(categories, eq(products.category_id, categories.id))
+    .where(and(eq(products.barcode, barcode), eq(products.is_active, true)))
+    .limit(1);
+  return row ?? null;
 }
 
 export async function findProductBySku(sku: string): Promise<Product | null> {
-  const result = await query<Product>(
-    'SELECT * FROM products WHERE sku = $1 AND is_active = true',
-    [sku]
-  );
-  return result.rows[0] || null;
+  const [row] = await db.select().from(products)
+    .where(and(eq(products.sku, sku), eq(products.is_active, true)))
+    .limit(1);
+  return row ?? null;
 }
 
 export async function createProduct(data: {
@@ -71,19 +85,22 @@ export async function createProduct(data: {
   category_id?: string;
   image_url?: string;
 }): Promise<Product> {
-  const result = await query<Product>(
-    `INSERT INTO products (sku, barcode, name, description, price, cost, category_id, image_url)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-     RETURNING *`,
-    [data.sku, data.barcode, data.name, data.description, data.price, data.cost, data.category_id, data.image_url]
-  );
+  const [product] = await db.insert(products)
+    .values({
+      sku: data.sku,
+      barcode: data.barcode,
+      name: data.name,
+      description: data.description,
+      price: data.price,
+      cost: data.cost,
+      category_id: data.category_id,
+      image_url: data.image_url,
+    })
+    .returning();
 
-  await query(
-    'INSERT INTO inventory (product_id, quantity) VALUES ($1, 0)',
-    [result.rows[0].id]
-  );
+  await db.insert(inventory).values({ product_id: product.id, quantity: 0 });
 
-  return result.rows[0];
+  return product;
 }
 
 export async function updateProduct(
@@ -99,33 +116,29 @@ export async function updateProduct(
     image_url: string;
   }>
 ): Promise<Product | null> {
-  const fields: string[] = [];
-  const values: any[] = [];
-  let paramIndex = 1;
+  const updates: Record<string, unknown> = {};
+  if (data.sku !== undefined) updates.sku = data.sku;
+  if (data.barcode !== undefined) updates.barcode = data.barcode;
+  if (data.name !== undefined) updates.name = data.name;
+  if (data.description !== undefined) updates.description = data.description;
+  if (data.price !== undefined) updates.price = data.price;
+  if (data.cost !== undefined) updates.cost = data.cost;
+  if (data.category_id !== undefined) updates.category_id = data.category_id;
+  if (data.image_url !== undefined) updates.image_url = data.image_url;
 
-  if (data.sku !== undefined) { fields.push(`sku = $${paramIndex++}`); values.push(data.sku); }
-  if (data.barcode !== undefined) { fields.push(`barcode = $${paramIndex++}`); values.push(data.barcode); }
-  if (data.name !== undefined) { fields.push(`name = $${paramIndex++}`); values.push(data.name); }
-  if (data.description !== undefined) { fields.push(`description = $${paramIndex++}`); values.push(data.description); }
-  if (data.price !== undefined) { fields.push(`price = $${paramIndex++}`); values.push(data.price); }
-  if (data.cost !== undefined) { fields.push(`cost = $${paramIndex++}`); values.push(data.cost); }
-  if (data.category_id !== undefined) { fields.push(`category_id = $${paramIndex++}`); values.push(data.category_id); }
-  if (data.image_url !== undefined) { fields.push(`image_url = $${paramIndex++}`); values.push(data.image_url); }
+  if (Object.keys(updates).length === 0) return findProductById(id);
 
-  if (fields.length === 0) return findProductById(id);
-
-  values.push(id);
-  const result = await query<Product>(
-    `UPDATE products SET ${fields.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
-    values
-  );
-  return result.rows[0] || null;
+  const [row] = await db.update(products)
+    .set(updates)
+    .where(eq(products.id, id))
+    .returning();
+  return row ?? null;
 }
 
 export async function deleteProduct(id: string): Promise<boolean> {
-  const result = await query(
-    'UPDATE products SET is_active = false WHERE id = $1',
-    [id]
-  );
-  return (result.rowCount ?? 0) > 0;
+  const result = await db.update(products)
+    .set({ is_active: false })
+    .where(eq(products.id, id))
+    .returning({ id: products.id });
+  return result.length > 0;
 }

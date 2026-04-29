@@ -12,7 +12,7 @@ export async function getCategories(_req: Request, res: Response, next: NextFunc
 
 export async function getCategory(req: Request, res: Response, next: NextFunction) {
   try {
-    const category = await categoryService.getCategoryById(req.params.id);
+    const category = await categoryService.getCategoryById(req.params.id as string);
     res.json(category);
   } catch (error) {
     next(error);
@@ -30,7 +30,7 @@ export async function createCategory(req: Request, res: Response, next: NextFunc
 
 export async function updateCategory(req: Request, res: Response, next: NextFunction) {
   try {
-    const category = await categoryService.updateCategory(req.params.id, req.body);
+    const category = await categoryService.updateCategory(req.params.id as string, req.body);
     res.json(category);
   } catch (error) {
     next(error);

@@ -33,7 +33,7 @@ export async function updateItem(req: Request, res: Response, next: NextFunction
     const { quantity } = req.body;
 
     const cart = await cartService.getCart(userId, sessionId);
-    const item = await cartService.updateCartItem(req.params.id, cart.id, quantity);
+    const item = await cartService.updateCartItem(req.params.id as string, cart.id, quantity);
     res.json(item);
   } catch (error) {
     next(error);
@@ -46,7 +46,7 @@ export async function removeItem(req: Request, res: Response, next: NextFunction
     const sessionId = req.headers['x-session-id'] as string | undefined;
 
     const cart = await cartService.getCart(userId, sessionId);
-    const result = await cartService.removeCartItem(req.params.id, cart.id);
+    const result = await cartService.removeCartItem(req.params.id as string, cart.id);
     res.json(result);
   } catch (error) {
     next(error);

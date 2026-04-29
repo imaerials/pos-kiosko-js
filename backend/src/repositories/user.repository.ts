@@ -1,20 +1,20 @@
-import { query } from '../config/database.js';
-import { User } from '../types/index.js';
+import { and, eq } from 'drizzle-orm';
+import { db } from '../db/index.js';
+import { users } from '../db/schema.js';
+import type { User } from '../types/index.js';
 
-export async function findUserByEmail(email: string): Promise<User | null> {
-  const result = await query<User>(
-    'SELECT * FROM users WHERE email = $1 AND is_active = true',
-    [email]
-  );
-  return result.rows[0] || null;
+export async function findUserByEmail(email: string): Promise<(User & { password_hash: string }) | null> {
+  const [row] = await db.select().from(users)
+    .where(and(eq(users.email, email), eq(users.is_active, true)))
+    .limit(1);
+  return row ?? null;
 }
 
 export async function findUserById(id: string): Promise<User | null> {
-  const result = await query<User>(
-    'SELECT * FROM users WHERE id = $1 AND is_active = true',
-    [id]
-  );
-  return result.rows[0] || null;
+  const [row] = await db.select().from(users)
+    .where(and(eq(users.id, id), eq(users.is_active, true)))
+    .limit(1);
+  return row ?? null;
 }
 
 export async function createUser(
@@ -23,11 +23,8 @@ export async function createUser(
   name: string,
   role: 'cashier' | 'manager' | 'admin'
 ): Promise<User> {
-  const result = await query<User>(
-    `INSERT INTO users (email, password_hash, name, role)
-     VALUES ($1, $2, $3, $4)
-     RETURNING *`,
-    [email, passwordHash, name, role]
-  );
-  return result.rows[0];
+  const [row] = await db.insert(users)
+    .values({ email, password_hash: passwordHash, name, role })
+    .returning();
+  return row;
 }

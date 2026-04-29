@@ -23,7 +23,7 @@ export async function updateInventory(req: Request, res: Response, next: NextFun
   try {
     const { quantity, low_stock_threshold } = req.body;
     const inventory = await inventoryService.updateInventory(
-      req.params.productId,
+      req.params.productId as string,
       quantity,
       low_stock_threshold
     );

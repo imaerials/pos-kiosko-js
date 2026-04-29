@@ -1,79 +1,68 @@
-import { query, getClient } from '../config/database.js';
-import { Cart, CartItem } from '../types/index.js';
+import { and, desc, eq } from 'drizzle-orm';
+import { db } from '../db/index.js';
+import { cartItems, carts, products } from '../db/schema.js';
+import type { Cart, CartItem } from '../types/index.js';
 
 export interface CartWithItems extends Cart {
   items: (CartItem & { product_name: string; product_sku: string })[];
 }
 
+const cartItemSelect = {
+  id: cartItems.id,
+  cart_id: cartItems.cart_id,
+  product_id: cartItems.product_id,
+  quantity: cartItems.quantity,
+  unit_price: cartItems.unit_price,
+  created_at: cartItems.created_at,
+  updated_at: cartItems.updated_at,
+  product_name: products.name,
+  product_sku: products.sku,
+};
+
+async function fetchCartItems(cartId: string) {
+  return db.select(cartItemSelect)
+    .from(cartItems)
+    .innerJoin(products, eq(cartItems.product_id, products.id))
+    .where(eq(cartItems.cart_id, cartId));
+}
+
 export async function findCartById(id: string): Promise<CartWithItems | null> {
-  const cartResult = await query<Cart>(
-    'SELECT * FROM carts WHERE id = $1 AND status = $2',
-    [id, 'active']
-  );
+  const [cart] = await db.select().from(carts)
+    .where(and(eq(carts.id, id), eq(carts.status, 'active')))
+    .limit(1);
+  if (!cart) return null;
 
-  if (cartResult.rows.length === 0) return null;
-
-  const itemsResult = await query<CartItem & { product_name: string; product_sku: string }>(`
-    SELECT ci.*, p.name as product_name, p.sku as product_sku
-    FROM cart_items ci
-    JOIN products p ON ci.product_id = p.id
-    WHERE ci.cart_id = $1
-  `, [id]);
-
-  return {
-    ...cartResult.rows[0],
-    items: itemsResult.rows,
-  };
+  const items = await fetchCartItems(cart.id);
+  return { ...cart, items };
 }
 
 export async function findCartByUserId(userId: string): Promise<CartWithItems | null> {
-  const cartResult = await query<Cart>(
-    'SELECT * FROM carts WHERE user_id = $1 AND status = $2 ORDER BY created_at DESC LIMIT 1',
-    [userId, 'active']
-  );
+  const [cart] = await db.select().from(carts)
+    .where(and(eq(carts.user_id, userId), eq(carts.status, 'active')))
+    .orderBy(desc(carts.created_at))
+    .limit(1);
+  if (!cart) return null;
 
-  if (cartResult.rows.length === 0) return null;
-
-  const itemsResult = await query<CartItem & { product_name: string; product_sku: string }>(`
-    SELECT ci.*, p.name as product_name, p.sku as product_sku
-    FROM cart_items ci
-    JOIN products p ON ci.product_id = p.id
-    WHERE ci.cart_id = $1
-  `, [cartResult.rows[0].id]);
-
-  return {
-    ...cartResult.rows[0],
-    items: itemsResult.rows,
-  };
+  const items = await fetchCartItems(cart.id);
+  return { ...cart, items };
 }
 
 export async function findCartBySessionId(sessionId: string): Promise<CartWithItems | null> {
-  const cartResult = await query<Cart>(
-    'SELECT * FROM carts WHERE session_id = $1 AND status = $2 ORDER BY created_at DESC LIMIT 1',
-    [sessionId, 'active']
-  );
+  const [cart] = await db.select().from(carts)
+    .where(and(eq(carts.session_id, sessionId), eq(carts.status, 'active')))
+    .orderBy(desc(carts.created_at))
+    .limit(1);
+  if (!cart) return null;
 
-  if (cartResult.rows.length === 0) return null;
-
-  const itemsResult = await query<CartItem & { product_name: string; product_sku: string }>(`
-    SELECT ci.*, p.name as product_name, p.sku as product_sku
-    FROM cart_items ci
-    JOIN products p ON ci.product_id = p.id
-    WHERE ci.cart_id = $1
-  `, [cartResult.rows[0].id]);
-
-  return {
-    ...cartResult.rows[0],
-    items: itemsResult.rows,
-  };
+  const items = await fetchCartItems(cart.id);
+  return { ...cart, items };
 }
 
 export async function createCart(userId?: string, sessionId?: string): Promise<Cart> {
-  const result = await query<Cart>(
-    'INSERT INTO carts (user_id, session_id) VALUES ($1, $2) RETURNING *',
-    [userId, sessionId]
-  );
-  return result.rows[0];
+  const [row] = await db.insert(carts)
+    .values({ user_id: userId, session_id: sessionId })
+    .returning();
+  return row;
 }
 
 export async function addCartItem(
@@ -82,64 +71,45 @@ export async function addCartItem(
   quantity: number,
   unitPrice: number
 ): Promise<CartItem> {
-  const existingResult = await query<CartItem>(
-    'SELECT * FROM cart_items WHERE cart_id = $1 AND product_id = $2',
-    [cartId, productId]
-  );
+  const [existing] = await db.select().from(cartItems)
+    .where(and(eq(cartItems.cart_id, cartId), eq(cartItems.product_id, productId)))
+    .limit(1);
 
-  if (existingResult.rows.length > 0) {
-    const existing = existingResult.rows[0];
-    const result = await query<CartItem>(
-      `UPDATE cart_items
-       SET quantity = quantity + $1, updated_at = CURRENT_TIMESTAMP
-       WHERE cart_id = $2 AND product_id = $3
-       RETURNING *`,
-      [quantity, cartId, productId]
-    );
-    return result.rows[0];
+  if (existing) {
+    const [row] = await db.update(cartItems)
+      .set({ quantity: existing.quantity + quantity, updated_at: new Date() })
+      .where(and(eq(cartItems.cart_id, cartId), eq(cartItems.product_id, productId)))
+      .returning();
+    return row;
   }
 
-  const result = await query<CartItem>(
-    `INSERT INTO cart_items (cart_id, product_id, quantity, unit_price)
-     VALUES ($1, $2, $3, $4) RETURNING *`,
-    [cartId, productId, quantity, unitPrice]
-  );
-  return result.rows[0];
+  const [row] = await db.insert(cartItems)
+    .values({ cart_id: cartId, product_id: productId, quantity, unit_price: unitPrice })
+    .returning();
+  return row;
 }
 
-export async function updateCartItem(
-  itemId: string,
-  quantity: number
-): Promise<CartItem | null> {
-  const result = await query<CartItem>(
-    'UPDATE cart_items SET quantity = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *',
-    [quantity, itemId]
-  );
-  return result.rows[0] || null;
+export async function updateCartItem(itemId: string, quantity: number): Promise<CartItem | null> {
+  const [row] = await db.update(cartItems)
+    .set({ quantity, updated_at: new Date() })
+    .where(eq(cartItems.id, itemId))
+    .returning();
+  return row ?? null;
 }
 
 export async function removeCartItem(itemId: string): Promise<boolean> {
-  const result = await query('DELETE FROM cart_items WHERE id = $1', [itemId]);
-  return (result.rowCount ?? 0) > 0;
+  const result = await db.delete(cartItems)
+    .where(eq(cartItems.id, itemId))
+    .returning({ id: cartItems.id });
+  return result.length > 0;
 }
 
 export async function clearCart(cartId: string): Promise<void> {
-  await query('DELETE FROM cart_items WHERE cart_id = $1', [cartId]);
+  await db.delete(cartItems).where(eq(cartItems.cart_id, cartId));
 }
 
 export async function convertCartToTransaction(cartId: string): Promise<void> {
-  const client = await getClient();
-  try {
-    await client.query('BEGIN');
-    await client.query(
-      "UPDATE carts SET status = 'converted', updated_at = CURRENT_TIMESTAMP WHERE id = $1",
-      [cartId]
-    );
-    await client.query('COMMIT');
-  } catch (error) {
-    await client.query('ROLLBACK');
-    throw error;
-  } finally {
-    client.release();
-  }
+  await db.update(carts)
+    .set({ status: 'converted', updated_at: new Date() })
+    .where(eq(carts.id, cartId));
 }

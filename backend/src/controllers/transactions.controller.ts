@@ -15,7 +15,7 @@ export async function getTransactions(req: Request, res: Response, next: NextFun
 
 export async function getTransaction(req: Request, res: Response, next: NextFunction) {
   try {
-    const transaction = await transactionService.getTransactionById(req.params.id);
+    const transaction = await transactionService.getTransactionById(req.params.id as string);
     res.json(transaction);
   } catch (error) {
     next(error);
@@ -43,7 +43,7 @@ export async function createTransaction(req: Request, res: Response, next: NextF
 
 export async function refundTransaction(req: Request, res: Response, next: NextFunction) {
   try {
-    const transaction = await transactionService.refundTransaction(req.params.id);
+    const transaction = await transactionService.refundTransaction(req.params.id as string);
     res.json(transaction);
   } catch (error) {
     next(error);

@@ -51,9 +51,9 @@ export function authorize(...roles: Array<'cashier' | 'manager' | 'admin'>) {
 }
 
 export function generateAccessToken(payload: JwtPayload): string {
-  return jwt.sign(payload, config.JWT_SECRET, { expiresIn: config.JWT_EXPIRES_IN });
+  return jwt.sign(payload, config.JWT_SECRET, { expiresIn: config.JWT_EXPIRES_IN as jwt.SignOptions['expiresIn'] });
 }
 
 export function generateRefreshToken(payload: JwtPayload): string {
-  return jwt.sign(payload, config.JWT_SECRET, { expiresIn: config.JWT_REFRESH_EXPIRES_IN });
+  return jwt.sign(payload, config.JWT_SECRET, { expiresIn: config.JWT_REFRESH_EXPIRES_IN as jwt.SignOptions['expiresIn'] });
 }

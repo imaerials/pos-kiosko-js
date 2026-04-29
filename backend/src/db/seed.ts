@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { pool } from '../config/database.js';
+import { pool } from './index.js';
 
 const SALT_ROUNDS = 10;
 

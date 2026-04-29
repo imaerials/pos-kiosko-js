@@ -1,95 +1,11 @@
-import { query, getClient } from '../config/database.js';
-import { Transaction, TransactionItem } from '../types/index.js';
+import { and, desc, eq, ne, sql } from 'drizzle-orm';
+import { db } from '../db/index.js';
+import { inventory, transactionItems, transactions, users } from '../db/schema.js';
+import type { Transaction, TransactionItem } from '../types/index.js';
 
 export interface TransactionWithItems extends Transaction {
   items: TransactionItem[];
-}
-
-export async function findAllTransactions(
-  limit: number = 50,
-  offset: number = 0,
-  userId?: string
-): Promise<TransactionWithItems[]> {
-  let sql = `
-    SELECT t.*, u.name as user_name
-    FROM transactions t
-    LEFT JOIN users u ON t.user_id = u.id
-    WHERE t.status != 'voided'
-  `;
-  const params: any[] = [];
-
-  if (userId) {
-    sql += ` AND t.user_id = $${params.length + 1}`;
-    params.push(userId);
-  }
-
-  sql += ` ORDER BY t.created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
-  params.push(limit, offset);
-
-  const transactionResult = await query<Transaction & { user_name: string }>(sql, params);
-
-  const transactions: TransactionWithItems[] = [];
-
-  for (const tx of transactionResult.rows) {
-    const itemsResult = await query<TransactionItem>(
-      'SELECT * FROM transaction_items WHERE transaction_id = $1',
-      [tx.id]
-    );
-    transactions.push({
-      ...tx,
-      user_name: tx.user_name,
-      items: itemsResult.rows,
-    } as TransactionWithItems);
-  }
-
-  return transactions;
-}
-
-export async function findTransactionById(id: string): Promise<TransactionWithItems | null> {
-  const txResult = await query<Transaction & { user_name: string }>(
-    `SELECT t.*, u.name as user_name
-     FROM transactions t
-     LEFT JOIN users u ON t.user_id = u.id
-     WHERE t.id = $1`,
-    [id]
-  );
-
-  if (txResult.rows.length === 0) return null;
-
-  const itemsResult = await query<TransactionItem>(
-    'SELECT * FROM transaction_items WHERE transaction_id = $1',
-    [id]
-  );
-
-  return {
-    ...txResult.rows[0],
-    items: itemsResult.rows,
-  } as TransactionWithItems;
-}
-
-export async function findTransactionByReceiptNumber(receiptNumber: string): Promise<TransactionWithItems | null> {
-  const txResult = await query<Transaction>(
-    'SELECT * FROM transactions WHERE receipt_number = $1',
-    [receiptNumber]
-  );
-
-  if (txResult.rows.length === 0) return null;
-
-  const itemsResult = await query<TransactionItem>(
-    'SELECT * FROM transaction_items WHERE transaction_id = $1',
-    [txResult.rows[0].id]
-  );
-
-  return {
-    ...txResult.rows[0],
-    items: itemsResult.rows,
-  } as TransactionWithItems;
-}
-
-function generateReceiptNumber(): string {
-  const timestamp = Date.now().toString(36).toUpperCase();
-  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
-  return `RCP-${timestamp}-${random}`;
+  user_name?: string | null;
 }
 
 export interface CreateTransactionData {
@@ -113,84 +29,137 @@ export interface CreateTransactionData {
   }[];
 }
 
+function generateReceiptNumber(): string {
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `RCP-${timestamp}-${random}`;
+}
+
+const transactionSelect = {
+  id: transactions.id,
+  receipt_number: transactions.receipt_number,
+  user_id: transactions.user_id,
+  subtotal: transactions.subtotal,
+  tax_amount: transactions.tax_amount,
+  discount_amount: transactions.discount_amount,
+  total: transactions.total,
+  payment_method: transactions.payment_method,
+  amount_paid: transactions.amount_paid,
+  change_given: transactions.change_given,
+  status: transactions.status,
+  customer_name: transactions.customer_name,
+  notes: transactions.notes,
+  created_at: transactions.created_at,
+  user_name: users.name,
+};
+
+export async function findAllTransactions(
+  limit = 50,
+  offset = 0,
+  userId?: string
+): Promise<TransactionWithItems[]> {
+  const where = userId
+    ? and(ne(transactions.status, 'voided'), eq(transactions.user_id, userId))
+    : ne(transactions.status, 'voided');
+
+  const txRows = await db.select(transactionSelect)
+    .from(transactions)
+    .leftJoin(users, eq(transactions.user_id, users.id))
+    .where(where)
+    .orderBy(desc(transactions.created_at))
+    .limit(limit)
+    .offset(offset);
+
+  return Promise.all(txRows.map(async (tx) => {
+    const items = await db.select().from(transactionItems)
+      .where(eq(transactionItems.transaction_id, tx.id));
+    return { ...tx, items };
+  }));
+}
+
+export async function findTransactionById(id: string): Promise<TransactionWithItems | null> {
+  const [tx] = await db.select(transactionSelect)
+    .from(transactions)
+    .leftJoin(users, eq(transactions.user_id, users.id))
+    .where(eq(transactions.id, id))
+    .limit(1);
+
+  if (!tx) return null;
+
+  const items = await db.select().from(transactionItems)
+    .where(eq(transactionItems.transaction_id, id));
+
+  return { ...tx, items };
+}
+
+export async function findTransactionByReceiptNumber(receiptNumber: string): Promise<TransactionWithItems | null> {
+  const [tx] = await db.select().from(transactions)
+    .where(eq(transactions.receipt_number, receiptNumber))
+    .limit(1);
+
+  if (!tx) return null;
+
+  const items = await db.select().from(transactionItems)
+    .where(eq(transactionItems.transaction_id, tx.id));
+
+  return { ...tx, items };
+}
+
 export async function createTransaction(data: CreateTransactionData): Promise<TransactionWithItems> {
-  const client = await getClient();
-  const receiptNumber = generateReceiptNumber();
+  return db.transaction(async (tx) => {
+    const [transaction] = await tx.insert(transactions)
+      .values({
+        receipt_number: generateReceiptNumber(),
+        user_id: data.userId,
+        subtotal: data.subtotal,
+        tax_amount: data.taxAmount,
+        discount_amount: data.discountAmount ?? 0,
+        total: data.total,
+        payment_method: data.paymentMethod,
+        amount_paid: data.amountPaid,
+        change_given: data.changeGiven ?? 0,
+        customer_name: data.customerName,
+        notes: data.notes,
+      })
+      .returning();
 
-  try {
-    await client.query('BEGIN');
-
-    const txResult = await client.query<Transaction>(
-      `INSERT INTO transactions
-       (receipt_number, user_id, subtotal, tax_amount, discount_amount, total,
-        payment_method, amount_paid, change_given, customer_name, notes)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-       RETURNING *`,
-      [
-        receiptNumber,
-        data.userId,
-        data.subtotal,
-        data.taxAmount,
-        data.discountAmount ?? 0,
-        data.total,
-        data.paymentMethod,
-        data.amountPaid,
-        data.changeGiven ?? 0,
-        data.customerName,
-        data.notes,
-      ]
-    );
-
-    const transaction = txResult.rows[0];
     const items: TransactionItem[] = [];
 
     for (const item of data.items) {
-      const itemResult = await client.query<TransactionItem>(
-        `INSERT INTO transaction_items
-         (transaction_id, product_id, product_name, product_sku, quantity, unit_price, subtotal)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
-         RETURNING *`,
-        [
-          transaction.id,
-          item.productId,
-          item.productName,
-          item.productSku,
-          item.quantity,
-          item.unitPrice,
-          item.subtotal,
-        ]
-      );
-      items.push(itemResult.rows[0]);
+      const [txItem] = await tx.insert(transactionItems)
+        .values({
+          transaction_id: transaction.id,
+          product_id: item.productId,
+          product_name: item.productName,
+          product_sku: item.productSku,
+          quantity: item.quantity,
+          unit_price: item.unitPrice,
+          subtotal: item.subtotal,
+        })
+        .returning();
+      items.push(txItem);
     }
 
     for (const item of data.items) {
-      await client.query(
-        'UPDATE inventory SET quantity = quantity - $1, updated_at = CURRENT_TIMESTAMP WHERE product_id = $2',
-        [item.quantity, item.productId]
-      );
+      await tx.update(inventory)
+        .set({
+          quantity: sql<number>`${inventory.quantity} - ${item.quantity}`,
+          updated_at: new Date(),
+        })
+        .where(eq(inventory.product_id, item.productId));
     }
 
-    await client.query('COMMIT');
-
-    return {
-      ...transaction,
-      items,
-    };
-  } catch (error) {
-    await client.query('ROLLBACK');
-    throw error;
-  } finally {
-    client.release();
-  }
+    return { ...transaction, items };
+  });
 }
 
 export async function updateTransactionStatus(
   id: string,
   status: 'completed' | 'refunded' | 'voided'
 ): Promise<Transaction | null> {
-  const result = await query<Transaction>(
-    'UPDATE transactions SET status = $1 WHERE id = $2 RETURNING *',
-    [status, id]
-  );
-  return result.rows[0] || null;
+  const [row] = await db.update(transactions)
+    .set({ status })
+    .where(eq(transactions.id, id))
+    .returning();
+  return row ?? null;
 }
