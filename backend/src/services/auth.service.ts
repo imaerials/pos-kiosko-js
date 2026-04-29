@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import * as userRepo from '../repositories/user.repository.js';
 import { generateAccessToken, generateRefreshToken } from '../middleware/auth.js';
 import { UnauthorizedError } from '../utils/errors.js';
