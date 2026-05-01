@@ -1,43 +1,39 @@
 {
   "name": "pos-kiosko-backend",
   "version": "1.0.0",
-  "description": "Grocery POS Backend API",
-  "main": "dist/server.js",
+  "description": "Grocery POS Backend with Express.js 5.x, TypeScript, Prisma",
+  "main": "dist/index.js",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
+    "dev": "tsx watch src/index.ts",
     "build": "tsc",
-    "start": "node dist/server.js",
+    "start": "node dist/index.js",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
     "db:seed": "tsx src/db/seed.ts",
-    "db:seed:users": "tsx src/db/seed-users.ts",
-    "db:generate": "drizzle-kit generate",
-    "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "prisma studio"
   },
   "dependencies": {
+    "@prisma/client": "^5.22.0",
     "bcryptjs": "^2.4.3",
+    "compression": "^1.7.5",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "drizzle-orm": "^0.45.2",
-    "express": "^5.0.1",
-    "express-rate-limit": "^7.4.0",
+    "dotenv": "^16.5.0",
+    "express": "^5.2.1",
+    "express-rate-limit": "^7.5.0",
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
-    "morgan": "^1.10.0",
-    "pg": "^8.13.0",
-    "uuid": "^10.0.0",
-    "zod": "^3.23.8"
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
+    "@types/compression": "^1.7.5",
     "@types/cors": "^2.8.17",
-    "@types/express": "^5.0.0",
-    "@types/jsonwebtoken": "^9.0.7",
-    "@types/morgan": "^1.9.9",
-    "@types/node": "^22.9.0",
-    "@types/pg": "^8.11.10",
-    "@types/uuid": "^10.0.0",
-    "drizzle-kit": "^0.31.10",
-    "tsx": "^4.19.2",
-    "typescript": "^5.6.3"
+    "@types/express": "^5.0.2",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/node": "^22.15.3",
+    "prisma": "^5.22.0",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
   }
 }
