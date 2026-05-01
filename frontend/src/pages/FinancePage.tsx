@@ -79,17 +79,17 @@ export function FinancePage() {
   const totalPayments = data?.payment_methods.reduce((s, p) => s + p.amount, 0) || 0;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
       {/* Encabezado */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h2 className="text-2xl font-bold text-gray-900">Finanzas</h2>
         <div className="flex items-center gap-3">
-          <div className="flex rounded-lg border bg-white overflow-hidden text-sm">
+          <div className="flex rounded-lg border bg-white overflow-x-auto text-sm">
             {PERIODS.map(p => (
               <button
                 key={p.key}
                 onClick={() => setPeriod(p.key)}
-                className={`px-4 py-2 font-medium transition-colors ${
+                className={`px-3 sm:px-4 py-2 font-medium whitespace-nowrap transition-colors ${
                   period === p.key
                     ? 'bg-blue-600 text-white'
                     : 'text-gray-600 hover:bg-gray-50'
@@ -246,7 +246,8 @@ export function FinancePage() {
             {data.top_products.length === 0 ? (
               <p className="px-5 py-6 text-sm text-gray-400">Sin ventas en este período</p>
             ) : (
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[560px]">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-5 py-3 text-left font-medium text-gray-500">#</th>
@@ -278,6 +279,7 @@ export function FinancePage() {
                   })}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
         </>

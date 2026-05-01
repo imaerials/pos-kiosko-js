@@ -33,11 +33,11 @@ export function InventoryPage() {
   }
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Gestión de inventario</h2>
+    <div className="p-4 sm:p-6">
+      <h2 className="text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Gestión de inventario</h2>
 
-      <div className="bg-white rounded-lg border overflow-hidden">
-        <table className="w-full">
+      <div className="bg-white rounded-lg border overflow-x-auto">
+        <table className="w-full min-w-[720px]">
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>

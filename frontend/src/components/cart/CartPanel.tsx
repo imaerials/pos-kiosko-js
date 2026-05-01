@@ -5,31 +5,45 @@ import { useCartStore } from '../../store/cartStore';
 
 interface CartPanelProps {
   onCheckout: () => void;
+  hideHeader?: boolean;
 }
 
-export function CartPanel({ onCheckout }: CartPanelProps) {
+export function CartPanel({ onCheckout, hideHeader = false }: CartPanelProps) {
   const { items, updateQuantity, removeItem, clearCart, getSubtotal, getTax, getTotal } = useCartStore();
 
   return (
-    <div className="flex flex-col h-full bg-white border-l">
-      <div className="p-4 border-b">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <ShoppingCart size={20} className="text-gray-600" />
-            <h2 className="text-lg font-semibold">Pedido actual</h2>
+    <div className="flex flex-col h-full bg-white">
+      {!hideHeader && (
+        <div className="p-4 border-b">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <ShoppingCart size={20} className="text-gray-600" />
+              <h2 className="text-lg font-semibold">Pedido actual</h2>
+            </div>
+            {items.length > 0 && (
+              <button
+                onClick={clearCart}
+                className="p-1 text-gray-400 hover:text-red-500"
+                title="Vaciar carrito"
+              >
+                <Trash2 size={18} />
+              </button>
+            )}
           </div>
-          {items.length > 0 && (
-            <button
-              onClick={clearCart}
-              className="p-1 text-gray-400 hover:text-red-500"
-              title="Vaciar carrito"
-            >
-              <Trash2 size={18} />
-            </button>
-          )}
+          <p className="text-sm text-gray-500 mt-1">{items.length} {items.length !== 1 ? 'ítems' : 'ítem'}</p>
         </div>
-        <p className="text-sm text-gray-500 mt-1">{items.length} {items.length !== 1 ? 'ítems' : 'ítem'}</p>
-      </div>
+      )}
+      {hideHeader && items.length > 0 && (
+        <div className="px-4 py-2 border-b flex items-center justify-between">
+          <p className="text-sm text-gray-500">{items.length} {items.length !== 1 ? 'ítems' : 'ítem'}</p>
+          <button
+            onClick={clearCart}
+            className="flex items-center gap-1 text-sm text-gray-400 hover:text-red-500"
+          >
+            <Trash2 size={16} /> Vaciar
+          </button>
+        </div>
+      )}
 
       <div className="flex-1 overflow-auto p-4">
         {items.length === 0 ? (

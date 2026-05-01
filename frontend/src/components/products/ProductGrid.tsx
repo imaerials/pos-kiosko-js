@@ -57,13 +57,13 @@ export function ProductGrid({ products, categories, onAddToCart }: ProductGridPr
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto p-4">
+      <div className="flex-1 overflow-auto p-3 sm:p-4 pb-24 lg:pb-4">
         {filteredProducts.length === 0 ? (
           <div className="text-center py-12 text-gray-500">
             <p>No se encontraron productos</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
             {filteredProducts.map((product) => (
               <ProductCard key={product.id} product={product} onAdd={onAddToCart} />
             ))}

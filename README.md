@@ -47,8 +47,7 @@ cp backend/.env.example backend/.env      # required for local backend
 **4. Seed the database** (first run only)
 
 ```bash
-npm run seed        # products, categories, inventory
-npm run seed:users  # demo users
+npm run db:seed     # seeds users, categories, products, inventory
 ```
 
 **5. Start both services**
