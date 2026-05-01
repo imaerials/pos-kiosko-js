@@ -120,16 +120,16 @@ export function TransactionsPage() {
   }
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Transacciones</h2>
+    <div className="p-4 sm:p-6">
+      <h2 className="text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Transacciones</h2>
 
       {transactions.length === 0 ? (
         <div className="text-center py-12 text-gray-500">
           <p>Sin transacciones aún</p>
         </div>
       ) : (
-        <div className="bg-white rounded-lg border overflow-hidden">
-          <table className="w-full">
+        <div className="bg-white rounded-lg border overflow-x-auto">
+          <table className="w-full min-w-[640px]">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recibo #</th>

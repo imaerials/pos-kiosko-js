@@ -120,14 +120,14 @@ function ProductFormModal({
   return (
     <Modal isOpen onClose={onClose} title={isEdit ? 'Editar producto' : 'Agregar producto'} size="lg">
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input label="SKU *" value={form.sku} onChange={set('sku')} required />
           <Input label="Código de barras" value={form.barcode} onChange={set('barcode')} />
         </div>
 
         <Input label="Nombre *" value={form.name} onChange={set('name')} required />
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input label="Precio *" type="number" step="any" min="0" value={form.price} onChange={set('price')} required />
           <Input label="Costo" type="number" step="any" min="0" value={form.cost} onChange={set('cost')} />
         </div>
@@ -211,16 +211,17 @@ export function ProductsPage() {
   }
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-4 sm:p-6">
+      <div className="flex items-center justify-between mb-4 sm:mb-6 gap-3">
         <h2 className="text-2xl font-bold text-gray-900">Productos</h2>
-        <Button onClick={() => setModalProduct(null)}>
-          <Plus size={18} className="mr-1" /> Agregar producto
+        <Button onClick={() => setModalProduct(null)} className="shrink-0">
+          <Plus size={18} className="sm:mr-1" />
+          <span className="hidden sm:inline">Agregar producto</span>
         </Button>
       </div>
 
-      <div className="bg-white rounded-lg border overflow-hidden">
-        <table className="w-full">
+      <div className="bg-white rounded-lg border overflow-x-auto">
+        <table className="w-full min-w-[680px]">
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>

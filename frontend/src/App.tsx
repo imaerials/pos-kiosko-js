@@ -51,9 +51,9 @@ function AdminOnlyRoute({ children }: { children: React.ReactNode }) {
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="flex flex-col h-[100dvh] bg-gray-100">
       <Header />
-      {children}
+      <main className="flex-1 min-h-0 overflow-auto">{children}</main>
     </div>
   );
 }

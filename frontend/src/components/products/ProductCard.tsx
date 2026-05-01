@@ -8,9 +8,9 @@ interface ProductCardProps {
 
 export function ProductCard({ product, onAdd }: ProductCardProps) {
   return (
-    <div className="bg-white rounded-lg border shadow-sm p-4 hover:shadow-md transition-shadow">
-      <div className="aspect-square bg-gray-100 rounded-lg mb-3 flex items-center justify-center">
-        <span className="text-4xl text-gray-400">
+    <div className="bg-white rounded-lg border shadow-sm p-3 sm:p-4 hover:shadow-md transition-shadow">
+      <div className="aspect-square bg-gray-100 rounded-lg mb-2 sm:mb-3 flex items-center justify-center">
+        <span className="text-3xl sm:text-4xl text-gray-400">
           {product.category_slug === 'produce' && '🥬'}
           {product.category_slug === 'dairy' && '🥛'}
           {product.category_slug === 'bakery' && '🍞'}
@@ -20,12 +20,13 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
         </span>
       </div>
       <h3 className="font-medium text-gray-900 text-sm mb-1 truncate">{product.name}</h3>
-      <p className="text-xs text-gray-500 mb-2">{product.sku}</p>
-      <div className="flex items-center justify-between">
-        <span className="text-lg font-bold text-blue-600">${Number(product.price).toFixed(2)}</span>
+      <p className="text-xs text-gray-500 mb-2 truncate">{product.sku}</p>
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-base sm:text-lg font-bold text-blue-600 truncate">${Number(product.price).toFixed(2)}</span>
         <button
           onClick={() => onAdd(product)}
-          className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors shrink-0"
+          aria-label="Agregar al carrito"
         >
           <Plus size={18} />
         </button>
