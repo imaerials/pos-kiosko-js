@@ -1,6 +1,11 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
+const allowedRegistrationEmails = (process.env.ALLOWED_REGISTRATION_EMAILS ?? '')
+  .split(',')
+  .map((e) => e.trim().toLowerCase())
+  .filter(Boolean);
+
 export const config = {
   port: process.env.PORT ? Number(process.env.PORT) : 3001,
   nodeEnv: process.env.NODE_ENV ?? 'development',
@@ -9,4 +14,5 @@ export const config = {
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '8h',
   bcryptSaltRounds: 12,
   taxRate: 0.1,
+  allowedRegistrationEmails,
 };

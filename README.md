@@ -16,6 +16,16 @@ You have two options to get an account:
 - **Self-register**: open the app and click **Crear cuenta**. The first user to register is automatically promoted to `admin`; subsequent self-registrations get the `cashier` role.
 - **Seed demo accounts** (handy for local dev/testing): run `npm run db:seed` from `backend/`. This creates `admin@pos.local`, `manager@pos.local`, and `cashier@pos.local` with the matching `admin123` / `manager123` / `cashier123` passwords, plus sample categories and products. Do **not** seed in production with these defaults — they're public.
 
+### Controlling who can register
+
+By default `/api/auth/register` is open. Set `ALLOWED_REGISTRATION_EMAILS` to a comma-separated allowlist to lock it down — only emails on the list will be accepted; everyone else gets `403 Forbidden`.
+
+```
+ALLOWED_REGISTRATION_EMAILS=owner@store.com,manager@store.com
+```
+
+Matching is case-insensitive and trims whitespace. Leave the variable empty/unset to keep registration open.
+
 ---
 
 ## Development
