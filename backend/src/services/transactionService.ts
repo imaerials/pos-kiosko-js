@@ -1,4 +1,3 @@
-import { cartRepository } from '../repositories/cartRepository.js';
 import { transactionRepository } from '../repositories/transactionRepository.js';
 import { inventoryRepository } from '../repositories/inventoryRepository.js';
 import { config } from '../config/index.js';
@@ -11,45 +10,73 @@ function generateReceiptNumber(): string {
   return `RCP-${timestamp}-${random}`;
 }
 
+type PrismaTransaction = NonNullable<Awaited<ReturnType<typeof transactionRepository.findById>>>;
+
+function mapTransaction(t: PrismaTransaction) {
+  return {
+    id: t.id,
+    receipt_number: t.receiptNumber,
+    subtotal: Number(t.subtotal),
+    tax_amount: Number(t.taxAmount),
+    discount_amount: Number(t.discountAmount),
+    total: Number(t.total),
+    payment_method: t.paymentMethod,
+    amount_paid: Number(t.amountPaid),
+    change_given: Number(t.changeGiven),
+    status: t.status,
+    customer_name: t.customerName ?? null,
+    notes: t.notes ?? null,
+    created_at: t.createdAt.toISOString(),
+    user: t.user ? { name: t.user.name } : undefined,
+    items: t.items.map(i => ({
+      id: i.id,
+      transaction_id: i.transactionId,
+      product_id: i.productId ?? null,
+      product_name: i.productName,
+      product_sku: i.productSku,
+      quantity: i.quantity,
+      unit_price: Number(i.unitPrice),
+      subtotal: Number(i.subtotal),
+    })),
+  };
+}
+
 export const transactionService = {
   async getAll(page?: number, limit?: number, userId?: string, status?: string) {
-    return transactionRepository.findAll({ page, limit, userId, status });
+    const result = await transactionRepository.findAll({ page, limit, userId, status });
+    return { ...result, items: result.items.map(mapTransaction) };
   },
 
   async getById(id: string) {
     const transaction = await transactionRepository.findById(id);
     if (!transaction) throw new NotFoundError('Transaction');
-    return transaction;
+    return mapTransaction(transaction);
   },
 
   async getByReceiptNumber(receiptNumber: string) {
     const transaction = await transactionRepository.findByReceiptNumber(receiptNumber);
     if (!transaction) throw new NotFoundError('Transaction');
-    return transaction;
+    return mapTransaction(transaction);
   },
 
   async create(userId: string | undefined, data: CreateTransactionInput) {
-    const cart = await cartRepository.findById(data.cartId);
-    if (!cart) throw new NotFoundError('Cart');
-    if (!cart.items.length) throw new BadRequestError('Cart is empty');
-
-    for (const item of cart.items) {
-      const inventory = await inventoryRepository.findByProductId(item.productId);
+    for (const item of data.items) {
+      const inventory = await inventoryRepository.findByProductId(item.product_id);
       if (!inventory || inventory.quantity < item.quantity) {
-        throw new BadRequestError(`Insufficient inventory for ${item.product.name}`);
+        throw new BadRequestError(`Insufficient inventory for ${item.product_name}`);
       }
     }
 
-    const subtotal = cart.items.reduce((sum, item) => sum + Number(item.unitPrice) * item.quantity, 0);
+    const subtotal = data.items.reduce((sum, item) => sum + item.unit_price * item.quantity, 0);
     const taxAmount = subtotal * config.taxRate;
-    const discountAmount = data.discountAmount ?? 0;
+    const discountAmount = data.discount_amount ?? 0;
     const total = subtotal + taxAmount - discountAmount;
 
-    if (data.amountPaid < total) {
+    if (data.amount_paid < total) {
       throw new BadRequestError('Amount paid is less than total');
     }
 
-    const changeGiven = data.amountPaid - total;
+    const changeGiven = data.amount_paid - total;
 
     const transaction = await transactionRepository.create({
       receiptNumber: generateReceiptNumber(),
@@ -58,24 +85,23 @@ export const transactionService = {
       taxAmount,
       discountAmount,
       total,
-      paymentMethod: data.paymentMethod,
-      amountPaid: data.amountPaid,
+      paymentMethod: data.payment_method,
+      amountPaid: data.amount_paid,
       changeGiven,
-      customerName: data.customerName,
+      customerName: data.customer_name,
       notes: data.notes,
-      items: cart.items.map(item => ({
-        productId: item.productId,
-        productName: item.product.name,
-        productSku: item.product.sku,
+      items: data.items.map(item => ({
+        productId: item.product_id,
+        productName: item.product_name,
+        productSku: item.product_sku,
         quantity: item.quantity,
-        unitPrice: Number(item.unitPrice),
-        subtotal: Number(item.unitPrice) * item.quantity,
+        unitPrice: item.unit_price,
+        subtotal: item.unit_price * item.quantity,
       })),
     });
 
-    await cartRepository.convertToTransaction(data.cartId);
-
-    return transaction;
+    if (!transaction) throw new BadRequestError('Failed to create transaction');
+    return mapTransaction(transaction);
   },
 
   async refund(id: string, data: RefundTransactionInput, userRole: string) {
@@ -89,7 +115,9 @@ export const transactionService = {
       throw new BadRequestError('Transaction already refunded');
     }
 
-    return transactionRepository.refund(id, data.reason);
+    const refunded = await transactionRepository.refund(id, data.reason);
+    if (!refunded) throw new NotFoundError('Transaction');
+    return mapTransaction(refunded);
   },
 
   async getDailySales(date?: Date) {

@@ -1,9 +1,25 @@
+import prisma from '../config/database.js';
 import { inventoryRepository } from '../repositories/inventoryRepository.js';
 import { productRepository } from '../repositories/productRepository.js';
 import { UpdateInventoryInput, RestockInput } from '../utils/validation.js';
 import { NotFoundError } from '../utils/errors.js';
 
 export const inventoryService = {
+  async getAll() {
+    const records = await prisma.inventory.findMany({
+      include: { product: { select: { name: true, sku: true } } },
+      orderBy: { product: { name: 'asc' } },
+    });
+    return records.map((r) => ({
+      id: r.id,
+      product_id: r.productId,
+      quantity: r.quantity,
+      low_stock_threshold: r.lowStockThreshold,
+      product_name: r.product.name,
+      sku: r.product.sku,
+    }));
+  },
+
   async getByProductId(productId: string) {
     const inventory = await inventoryRepository.findByProductId(productId);
     if (!inventory) throw new NotFoundError('Inventory');

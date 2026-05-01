@@ -11,6 +11,7 @@ import categoryRoutes from './routes/categories.js';
 import inventoryRoutes from './routes/inventory.js';
 import cartRoutes from './routes/cart.js';
 import transactionRoutes from './routes/transactions.js';
+import financeRoutes from './routes/finance.js';
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/transactions', transactionRoutes);
+app.use('/api/finance', financeRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

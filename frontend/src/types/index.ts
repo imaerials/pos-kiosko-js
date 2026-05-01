@@ -77,7 +77,6 @@ export interface Transaction {
 export interface AuthResponse {
   user: User;
   accessToken: string;
-  refreshToken: string;
 }
 
 export interface Inventory {

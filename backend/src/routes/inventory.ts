@@ -4,9 +4,11 @@ import { authenticate } from '../middleware/auth.js';
 
 const router = Router();
 
+router.get('/', authenticate, inventoryController.getAll);
 router.get('/low-stock', authenticate, inventoryController.getLowStock);
 router.get('/product/:productId', inventoryController.getByProductId);
 
+router.put('/:productId', authenticate, inventoryController.update);
 router.put('/product/:productId', authenticate, inventoryController.update);
 router.post('/restock', authenticate, inventoryController.restock);
 

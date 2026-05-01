@@ -83,7 +83,10 @@ export const transactionRepository = {
         }
       }
 
-      return transaction;
+      return tx.transaction.findUnique({
+        where: { id: transaction.id },
+        include: { user: { select: { id: true, name: true, email: true } }, items: true },
+      });
     });
   },
 
@@ -112,7 +115,10 @@ export const transactionRepository = {
         });
       }
 
-      return transaction;
+      return tx.transaction.findUnique({
+        where: { id },
+        include: { user: { select: { id: true, name: true, email: true } }, items: true },
+      });
     });
   },
 

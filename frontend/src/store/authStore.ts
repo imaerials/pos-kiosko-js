@@ -8,13 +8,28 @@ interface AuthState {
   logout: () => void;
 }
 
+function parseStoredUser(): User | null {
+  try {
+    return JSON.parse(localStorage.getItem('user') ?? 'null');
+  } catch {
+    localStorage.removeItem('user');
+    return null;
+  }
+}
+
+const storedToken = localStorage.getItem('accessToken');
+const validToken = storedToken && storedToken !== 'undefined' ? storedToken : null;
+if (!validToken) {
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('user');
+}
+
 export const useAuthStore = create<AuthState>((set) => ({
-  user: JSON.parse(localStorage.getItem('user') || 'null'),
-  isAuthenticated: !!localStorage.getItem('accessToken'),
+  user: validToken ? parseStoredUser() : null,
+  isAuthenticated: !!validToken,
   setUser: (user) => set({ user, isAuthenticated: !!user }),
   logout: () => {
     localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
     set({ user: null, isAuthenticated: false });
   },

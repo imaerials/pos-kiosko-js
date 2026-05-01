@@ -45,12 +45,18 @@ export const updateCartItemSchema = z.object({
 });
 
 export const createTransactionSchema = z.object({
-  cartId: z.string().uuid(),
-  paymentMethod: z.enum(['cash', 'card', 'mixed']),
-  amountPaid: z.number().positive(),
-  customerName: z.string().max(100).optional(),
+  payment_method: z.enum(['cash', 'card', 'mixed']),
+  amount_paid: z.number().positive(),
+  customer_name: z.string().max(100).optional(),
   notes: z.string().optional(),
-  discountAmount: z.number().min(0).optional(),
+  discount_amount: z.number().min(0).optional(),
+  items: z.array(z.object({
+    product_id: z.string().uuid(),
+    product_name: z.string().min(1),
+    product_sku: z.string().min(1),
+    quantity: z.number().int().positive(),
+    unit_price: z.number().positive(),
+  })).min(1),
 });
 
 export const refundTransactionSchema = z.object({

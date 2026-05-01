@@ -19,10 +19,10 @@ export const authService = {
     }
 
     const payload: JwtPayload = { userId: user.id, email: user.email, role: user.role };
-    const token = jwt.sign(payload, config.jwtSecret, { expiresIn: '8h' } as jwt.SignOptions);
+    const accessToken = jwt.sign(payload, config.jwtSecret, { expiresIn: '8h' } as jwt.SignOptions);
 
     return {
-      token,
+      accessToken,
       user: { id: user.id, email: user.email, name: user.name, role: user.role },
     };
   },
@@ -37,10 +37,10 @@ export const authService = {
     const user = await userRepository.create({ email, passwordHash, name, role: role ?? 'cashier' });
 
     const payload: JwtPayload = { userId: user.id, email: user.email, role: user.role };
-    const token = jwt.sign(payload, config.jwtSecret, { expiresIn: '8h' } as jwt.SignOptions);
+    const accessToken = jwt.sign(payload, config.jwtSecret, { expiresIn: '8h' } as jwt.SignOptions);
 
     return {
-      token,
+      accessToken,
       user: { id: user.id, email: user.email, name: user.name, role: user.role },
     };
   },

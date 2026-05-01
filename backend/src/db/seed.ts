@@ -5,23 +5,27 @@ import { config } from '../config/index.js';
 async function main() {
   console.log('Seeding database...');
 
-  const passwordHash = await bcrypt.hash('admin123', config.bcryptSaltRounds);
+  const [adminHash, managerHash, cashierHash] = await Promise.all([
+    bcrypt.hash('admin123', config.bcryptSaltRounds),
+    bcrypt.hash('manager123', config.bcryptSaltRounds),
+    bcrypt.hash('cashier123', config.bcryptSaltRounds),
+  ]);
 
   const users = await Promise.all([
     prisma.user.upsert({
       where: { email: 'admin@pos.local' },
-      update: {},
-      create: { email: 'admin@pos.local', passwordHash, name: 'Admin User', role: 'admin' },
+      update: { passwordHash: adminHash },
+      create: { email: 'admin@pos.local', passwordHash: adminHash, name: 'Admin User', role: 'admin' },
     }),
     prisma.user.upsert({
       where: { email: 'manager@pos.local' },
-      update: {},
-      create: { email: 'manager@pos.local', passwordHash, name: 'Manager User', role: 'manager' },
+      update: { passwordHash: managerHash },
+      create: { email: 'manager@pos.local', passwordHash: managerHash, name: 'Manager User', role: 'manager' },
     }),
     prisma.user.upsert({
       where: { email: 'cashier@pos.local' },
-      update: {},
-      create: { email: 'cashier@pos.local', passwordHash, name: 'Cashier User', role: 'cashier' },
+      update: { passwordHash: cashierHash },
+      create: { email: 'cashier@pos.local', passwordHash: cashierHash, name: 'Cashier User', role: 'cashier' },
     }),
   ]);
 

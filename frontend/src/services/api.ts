@@ -26,11 +26,15 @@ api.interceptors.request.use((config) => {
 });
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (response.data?.success && response.data?.data !== undefined) {
+      response.data = response.data.data;
+    }
+    return response;
+  },
   async (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
       window.location.href = '/login';
     }
@@ -42,14 +46,12 @@ export const authApi = {
   login: async (email: string, password: string): Promise<AuthResponse> => {
     const { data } = await api.post<AuthResponse>('/auth/login', { email, password });
     localStorage.setItem('accessToken', data.accessToken);
-    localStorage.setItem('refreshToken', data.refreshToken);
     localStorage.setItem('user', JSON.stringify(data.user));
     return data;
   },
   logout: async () => {
-    await api.post('/auth/logout');
+    try { await api.post('/auth/logout'); } catch { /* stateless JWT, ignore errors */ }
     localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
   },
   getMe: async (): Promise<User> => {
@@ -61,8 +63,8 @@ export const authApi = {
 export const productsApi = {
   getAll: async (categoryId?: string): Promise<Product[]> => {
     const params = categoryId ? { categoryId } : {};
-    const { data } = await api.get<Product[]>('/products', { params });
-    return data;
+    const { data } = await api.get<{ items: Product[] } | Product[]>('/products', { params });
+    return Array.isArray(data) ? data : data.items;
   },
   getById: async (id: string): Promise<Product> => {
     const { data } = await api.get<Product>(`/products/${id}`);
@@ -103,8 +105,8 @@ export const productsApi = {
 
 export const categoriesApi = {
   getAll: async (): Promise<Category[]> => {
-    const { data } = await api.get<Category[]>('/categories');
-    return data;
+    const { data } = await api.get<{ items: Category[] } | Category[]>('/categories');
+    return Array.isArray(data) ? data : data.items;
   },
 };
 
@@ -130,9 +132,9 @@ export const cartApi = {
 };
 
 export const transactionsApi = {
-  getAll: async (limit = 50, offset = 0): Promise<Transaction[]> => {
-    const { data } = await api.get<Transaction[]>('/transactions', { params: { limit, offset } });
-    return data;
+  getAll: async (limit = 50, page = 1): Promise<Transaction[]> => {
+    const { data } = await api.get<{ items: Transaction[] } | Transaction[]>('/transactions', { params: { limit, page } });
+    return Array.isArray(data) ? data : data.items;
   },
   getById: async (id: string): Promise<Transaction> => {
     const { data } = await api.get<Transaction>(`/transactions/${id}`);

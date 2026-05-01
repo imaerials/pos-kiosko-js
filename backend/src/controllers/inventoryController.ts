@@ -2,6 +2,11 @@ import { Request, Response } from 'express';
 import { inventoryService } from '../services/inventoryService.js';
 
 export const inventoryController = {
+  async getAll(_req: Request, res: Response) {
+    const inventory = await inventoryService.getAll();
+    res.json({ success: true, data: inventory });
+  },
+
   async getByProductId(req: Request, res: Response) {
     const inventory = await inventoryService.getByProductId(req.params.productId as string);
     res.json({ success: true, data: inventory });
