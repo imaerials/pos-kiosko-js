@@ -9,7 +9,6 @@ export const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
   name: z.string().min(1).max(100),
-  role: z.enum(['cashier', 'manager', 'admin']).optional(),
 });
 
 export const createProductSchema = z.object({

@@ -49,6 +49,12 @@ export const authApi = {
     localStorage.setItem('user', JSON.stringify(data.user));
     return data;
   },
+  register: async (name: string, email: string, password: string): Promise<AuthResponse> => {
+    const { data } = await api.post<AuthResponse>('/auth/register', { name, email, password });
+    localStorage.setItem('accessToken', data.accessToken);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    return data;
+  },
   logout: async () => {
     try { await api.post('/auth/logout'); } catch { /* stateless JWT, ignore errors */ }
     localStorage.removeItem('accessToken');

@@ -7,24 +7,36 @@ import { Input } from '../components/ui/Input';
 import { ShoppingCart } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-export function LoginPage() {
+export function RegisterPage() {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { setUser } = useAuthStore();
   const navigate = useNavigate();
 
+  const passwordMismatch = confirmPassword.length > 0 && password !== confirmPassword;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (password.length < 6) {
+      toast.error('La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+    if (password !== confirmPassword) {
+      toast.error('Las contraseñas no coinciden');
+      return;
+    }
     setIsLoading(true);
 
     try {
-      const response = await authApi.login(email, password);
+      const response = await authApi.register(name, email, password);
       setUser(response.user);
-      toast.success(`Bienvenido, ${response.user.name}!`);
+      toast.success(`Cuenta creada. ¡Bienvenido, ${response.user.name}!`);
       navigate('/');
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Error al iniciar sesión');
+      toast.error(error.response?.data?.message || 'Error al crear la cuenta');
     } finally {
       setIsLoading(false);
     }
@@ -37,11 +49,20 @@ export function LoginPage() {
           <div className="w-16 h-16 bg-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4">
             <ShoppingCart className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Grocery POS</h1>
-          <p className="text-gray-500 mt-1">Ingresá para continuar</p>
+          <h1 className="text-2xl font-bold text-gray-900">Crear cuenta</h1>
+          <p className="text-gray-500 mt-1">Empezá a usar Grocery POS</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <Input
+            label="Nombre"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Juan Pérez"
+            autoComplete="name"
+            required
+          />
           <Input
             label="Correo electrónico"
             type="email"
@@ -56,19 +77,30 @@ export function LoginPage() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Ingresá tu contraseña"
-            autoComplete="current-password"
+            placeholder="Mínimo 6 caracteres"
+            autoComplete="new-password"
+            minLength={6}
             required
           />
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? 'Ingresando...' : 'Ingresar'}
+          <Input
+            label="Repetir contraseña"
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="Repetí la contraseña"
+            autoComplete="new-password"
+            error={passwordMismatch ? 'Las contraseñas no coinciden' : undefined}
+            required
+          />
+          <Button type="submit" className="w-full" disabled={isLoading || passwordMismatch}>
+            {isLoading ? 'Creando cuenta...' : 'Crear cuenta'}
           </Button>
         </form>
 
         <p className="text-sm text-center text-gray-500 mt-6">
-          ¿No tenés cuenta?{' '}
-          <Link to="/register" className="text-blue-600 hover:text-blue-700 font-medium">
-            Crear cuenta
+          ¿Ya tenés cuenta?{' '}
+          <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+            Ingresar
           </Link>
         </p>
       </div>

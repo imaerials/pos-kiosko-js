@@ -49,13 +49,9 @@ npm run dev          # Vite dev server
 npm run build        # Production build
 ```
 
-## Seed Credentials
+## First-Run Setup
 
-| Email | Password | Role |
-|-------|----------|------|
-| admin@pos.local | admin123 | admin |
-| manager@pos.local | manager123 | manager |
-| cashier@pos.local | cashier123 | cashier |
+There are no seeded user accounts. The first user to register at `/register` is automatically promoted to `admin`; subsequent registrations default to `cashier`. Admins can change roles via the user management UI.
 
 ## Architecture
 

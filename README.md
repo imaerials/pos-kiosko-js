@@ -1,27 +1,26 @@
 # Grocery POS
 
-A fullstack Point of Sale application for grocery store operations.
+A fullstack Point of Sale application for grocery store operations. Mobile-responsive UI, role-based access, and a Coolify-ready Docker setup.
 
 ## Stack
 
-- **Backend**: Express.js 5.x, Node.js, TypeScript
+- **Backend**: Express.js 5.x, Node.js 20, TypeScript, Prisma ORM
 - **Frontend**: Vite, React 19, TypeScript, Tailwind CSS
 - **Database**: PostgreSQL 16
 - **State**: Zustand (client), React Query (server)
 
-## Demo Credentials
+## First-Run Setup
 
-| Email | Password | Role |
-|-------|----------|------|
-| admin@pos.local | admin123 | admin |
-| manager@pos.local | manager123 | manager |
-| cashier@pos.local | cashier123 | cashier |
+You have two options to get an account:
+
+- **Self-register**: open the app and click **Crear cuenta**. The first user to register is automatically promoted to `admin`; subsequent self-registrations get the `cashier` role.
+- **Seed demo accounts** (handy for local dev/testing): run `npm run db:seed` from `backend/`. This creates `admin@pos.local`, `manager@pos.local`, and `cashier@pos.local` with the matching `admin123` / `manager123` / `cashier123` passwords, plus sample categories and products. Do **not** seed in production with these defaults — they're public.
 
 ---
 
-## Development (recommended)
+## Development
 
-Runs the DB in Docker, backend and frontend natively with hot reload.
+Runs Postgres in Docker, backend and frontend natively with hot reload.
 
 **1. Start the database**
 
@@ -32,7 +31,7 @@ docker compose -f docker-compose.dev.yml up -d
 **2. Install dependencies**
 
 ```bash
-npm install                  # installs concurrently at the root
+npm install                    # root (concurrently runner)
 npm install --prefix backend
 npm install --prefix frontend
 ```
@@ -40,63 +39,70 @@ npm install --prefix frontend
 **3. Configure environment**
 
 ```bash
-cp .env.example .env                       # optional — defaults work out of the box
-cp backend/.env.example backend/.env      # required for local backend
+cp backend/.env.example backend/.env   # required: DATABASE_URL, JWT_SECRET
 ```
 
-**4. Seed the database** (first run only)
+**4. Push the Prisma schema and seed (first run)**
 
 ```bash
-npm run db:seed     # seeds users, categories, products, inventory
+cd backend
+npx prisma db push   # creates tables from prisma/schema.prisma
+npm run db:seed      # demo users, categories, products, inventory
+cd ..
 ```
 
 **5. Start both services**
 
 ```bash
-npm run dev         # starts API (cyan) and UI (magenta) concurrently
+npm run dev          # API (cyan) + UI (magenta) concurrently
 ```
 
-Services:
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:3001
 
-Individual services:
-
-```bash
-npm run dev:api     # backend only
-npm run dev:ui      # frontend only
-```
+Run individually with `npm run dev:api` / `npm run dev:ui`.
 
 ---
 
 ## Production (Docker)
 
-Builds the TypeScript backend, compiles the frontend into a static bundle served by nginx, and wires everything together. nginx proxies `/api/` to the backend, so only port 80 is exposed.
+Builds the TypeScript backend, compiles the frontend into a static bundle served by nginx, and wires everything together. nginx proxies `/api/` to the backend, so only the frontend needs to be reachable from outside.
 
 ```bash
-cp .env.example .env   # set JWT_SECRET at minimum
+cp .env.example .env             # set JWT_SECRET (and DB creds if not using defaults)
 docker compose up --build -d
 ```
 
-App is available at http://localhost (port 80 by default, override with `FRONTEND_PORT`).
+The backend container automatically runs `prisma db push` on startup, so the schema is created/updated on first boot. No manual migration step needed.
 
-Seed on first run:
-
-```bash
-docker compose exec backend node dist/server.js  # ensure backend is up
-# then seed via the dev compose or a one-off container:
-docker compose -f docker-compose.dev.yml run --rm postgres \
-  psql -h localhost -U postgres -d pos_kiosko -f /dev/null
-```
-
-Or simply run the dev DB and seed scripts before switching to the prod stack:
+If you want demo accounts in this environment too:
 
 ```bash
-docker compose -f docker-compose.dev.yml up -d
-npm run seed && npm run seed:users
-docker compose -f docker-compose.dev.yml down
-docker compose up --build -d
+docker compose exec backend sh -c "node dist/db/seed.js"
 ```
+
+(Or skip seeding and just register the first user via the UI to get an admin account.)
+
+### Coolify deployment
+
+The compose file is Coolify-friendly:
+
+- Frontend `expose`s port 80 — Coolify's Traefik proxy routes the public domain to it.
+- No host-port bindings (those would clash with Coolify's own proxy on `:80`).
+- Backend env uses `DATABASE_URL` derived from the standard `DB_*` vars.
+
+In the Coolify UI, set a domain on the `frontend` service and Coolify will handle TLS and routing.
+
+For local Docker runs where you actually want a host port, add a `docker-compose.override.yml`:
+
+```yaml
+services:
+  frontend:
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+```
+
+Compose merges it automatically; Coolify ignores it.
 
 ---
 
@@ -104,56 +110,65 @@ docker compose up --build -d
 
 | File | Used by | Purpose |
 |------|---------|---------|
-| `.env` (root) | `docker compose` | Overrides for both compose files (DB creds, JWT secret, ports) |
-| `backend/.env` | `dotenv` in `backend/src/config/env.ts` | Required when running the backend locally |
+| `.env` (root) | `docker compose` | DB creds, `JWT_SECRET`, frontend port override |
+| `backend/.env` | local backend | `DATABASE_URL`, `JWT_SECRET`, `PORT`, `NODE_ENV` |
 | `frontend/.env` | Vite | `VITE_API_URL` if the backend isn't at `http://localhost:3001/api` |
 
-All three are gitignored. In production the frontend always calls `/api` (relative), which nginx proxies to the backend — `VITE_API_URL` is not needed.
+All three are gitignored. In production the frontend calls `/api` (relative); nginx proxies to the backend, so `VITE_API_URL` isn't needed.
 
 ---
 
 ## Features
 
-- **POS Interface**: Product grid with category filtering, cart management, checkout flow
-- **Transaction History**: View all transactions with receipt details
-- **Inventory Management**: Stock levels, low stock alerts, restocking (manager/admin)
-- **Role-Based Access**: Cashiers process sales, managers handle inventory and refunds
+- **POS interface**: product grid, category filter, search by name/SKU/barcode, cart, checkout (cash + card), printable receipt
+- **Mobile-responsive**: stacked layout with slide-up cart drawer on phones, full side-by-side on desktop
+- **Transaction history**: list view with receipt detail modal, refund flow (manager+)
+- **Inventory management**: stock levels, low-stock alerts, in-place edit (manager/admin)
+- **Product management**: full CRUD with initial-stock setup (admin)
+- **Finance dashboard**: revenue, COGS, gross profit, top products, payment-method breakdown (admin)
+- **Auth**: email/password, JWT, self-registration (first user → admin)
+- **Role-based access**: cashier (POS + own transactions), manager (+ inventory, all transactions, refunds), admin (+ products, finance)
 
 ---
 
 ## Project Structure
 
 ```
-├── package.json          # root scripts (concurrently dev, seed shortcuts)
-├── docker-compose.yml    # production stack (nginx frontend, compiled backend)
-├── docker-compose.dev.yml # dev stack (DB only)
+├── docker-compose.yml          # prod stack (Postgres + backend + nginx-served frontend)
+├── docker-compose.dev.yml      # dev stack (Postgres only)
 ├── backend/
-│   ├── Dockerfile        # multi-stage: tsc build → prod node image
+│   ├── Dockerfile              # multi-stage: prisma generate + tsc → slim node runtime
+│   ├── prisma/schema.prisma    # source of truth for the DB schema
 │   └── src/
-│       ├── config/       # database pool, environment validation
-│       ├── middleware/   # JWT auth, error handler, rate limiter, validation
-│       ├── routes/       # Express router definitions
-│       ├── controllers/  # route handlers
-│       ├── services/     # business logic
-│       ├── repositories/ # data access (SQL queries)
-│       └── db/           # schema.sql, seed.sql, seed scripts
+│       ├── config/             # env + Prisma client
+│       ├── middleware/         # JWT auth, error handler, rate limiter, validation
+│       ├── routes/             # Express router definitions
+│       ├── controllers/        # route handlers
+│       ├── services/           # business logic
+│       ├── repositories/       # Prisma queries
+│       ├── db/seed.ts          # seeds users/categories/products/inventory
+│       └── utils/              # custom errors, Zod validation schemas
 └── frontend/
-    ├── Dockerfile        # multi-stage: vite build → nginx:alpine
-    ├── nginx.conf        # SPA fallback, /api/ proxy, static asset caching
+    ├── Dockerfile              # multi-stage: vite build → nginx:alpine
+    ├── nginx.conf              # SPA fallback, /api/ proxy, static asset caching
     └── src/
-        ├── components/   # UI components
-        ├── pages/        # route pages
-        ├── store/        # Zustand state
-        └── services/     # API client
+        ├── components/         # ui/, layout/, products/, cart/, checkout/, receipt/
+        ├── pages/              # LoginPage, RegisterPage, POSPage, TransactionsPage,
+        │                       # InventoryPage, ProductsPage, FinancePage
+        ├── store/              # Zustand (auth, cart)
+        └── services/           # API client (axios + interceptors)
 ```
 
 ## API Endpoints
 
 | Route | Methods | Auth |
 |-------|---------|------|
-| /api/auth | POST login, GET me | Public / JWT |
-| /api/products | GET, POST, PUT, DELETE | manager/admin |
-| /api/categories | GET, POST, PUT | manager/admin |
-| /api/cart | GET, POST/PUT/DELETE items | JWT required |
-| /api/transactions | GET, POST, POST :id/refund | cashier (own), manager (all) |
-| /api/inventory | GET, PUT, POST restock | manager/admin |
+| `/api/auth/login` | POST | Public |
+| `/api/auth/register` | POST | Public (role forced server-side) |
+| `/api/auth/me` | GET | JWT |
+| `/api/products` | GET, POST, PUT, DELETE | GET public; mutations manager/admin |
+| `/api/categories` | GET, POST, PUT | GET public; mutations manager/admin |
+| `/api/cart` | GET, POST/PUT/DELETE items | JWT |
+| `/api/transactions` | GET, POST, POST `:id/refund` | cashier (own), manager (all + refunds) |
+| `/api/inventory` | GET, PUT, POST restock | manager/admin |
+| `/api/finance/summary` | GET | admin |

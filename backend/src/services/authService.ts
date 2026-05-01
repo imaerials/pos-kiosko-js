@@ -27,14 +27,17 @@ export const authService = {
     };
   },
 
-  async register({ email, password, name, role }: RegisterInput) {
+  async register({ email, password, name }: RegisterInput) {
     const existing = await userRepository.findByEmail(email);
     if (existing) {
       throw new ConflictError('Email already in use');
     }
 
+    const { total } = await userRepository.findAll({ page: 1, limit: 1 });
+    const role = total === 0 ? 'admin' : 'cashier';
+
     const passwordHash = await bcrypt.hash(password, config.bcryptSaltRounds);
-    const user = await userRepository.create({ email, passwordHash, name, role: role ?? 'cashier' });
+    const user = await userRepository.create({ email, passwordHash, name, role });
 
     const payload: JwtPayload = { userId: user.id, email: user.email, role: user.role };
     const accessToken = jwt.sign(payload, config.jwtSecret, { expiresIn: '8h' } as jwt.SignOptions);
