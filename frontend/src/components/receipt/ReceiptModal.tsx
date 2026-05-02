@@ -20,7 +20,7 @@ export function ReceiptModal({ isOpen, onClose, transaction }: ReceiptModalProps
     <Modal isOpen={isOpen} onClose={onClose} title="Recibo" size="sm">
       <div className="space-y-4" id="receipt-content">
         <div className="text-center border-b pb-4">
-          <h3 className="text-lg font-bold">Grocery POS</h3>
+          <h3 className="text-lg font-bold">FlowPOS</h3>
           <p className="text-sm text-gray-500">¡Gracias por su compra!</p>
         </div>
 

@@ -51,23 +51,23 @@ export function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-950 via-teal-900 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-white">
       {/* Hero Section */}
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-500/20 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-600/10 via-transparent to-transparent" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-24">
           <div className="text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-sm font-medium mb-8">
-              <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 border border-blue-200 text-blue-700 text-sm font-medium mb-8">
+              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
               Sistema activo y funcionando
             </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6">
-              Grocery <span className="text-emerald-400">POS</span>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 mb-6">
+              Flow<span className="text-blue-600">POS</span>
             </h1>
-            <p className="text-xl sm:text-2xl text-slate-300 max-w-2xl mx-auto mb-4">
+            <p className="text-xl sm:text-2xl text-slate-600 max-w-2xl mx-auto mb-4">
               Sistema de Punto de Venta profesional
             </p>
-            <p className="text-lg text-slate-400 max-w-xl mx-auto mb-12">
+            <p className="text-lg text-slate-500 max-w-xl mx-auto mb-12">
               Gestión integral para tu almacén: ventas, inventario, transacciones y reportes en un solo lugar.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -75,27 +75,27 @@ export function LandingPage() {
                 <>
                   <button
                     onClick={handleGoToPOS}
-                    className="px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-emerald-600/30"
+                    className="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-blue-600/30"
                   >
                     Ir al POS
                     <ArrowRight size={20} />
                   </button>
-                  <span className="text-slate-400">
-                    Bienvenido, <span className="text-white font-medium">{user?.name}</span>
+                  <span className="text-slate-500">
+                    Bienvenido, <span className="text-slate-800 font-medium">{user?.name}</span>
                   </span>
                 </>
               ) : (
                 <>
                   <Link
                     to="/login"
-                    className="px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-emerald-600/30"
+                    className="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-blue-600/30"
                   >
                     Iniciar Sesión
                     <ArrowRight size={20} />
                   </Link>
                   <Link
                     to="/register"
-                    className="px-8 py-4 bg-white/10 hover:bg-white/15 text-white font-semibold rounded-xl transition-all border border-white/20"
+                    className="px-8 py-4 bg-white hover:bg-slate-50 text-slate-800 font-semibold rounded-xl transition-all border border-slate-300 shadow-sm"
                   >
                     Crear Cuenta
                   </Link>
@@ -109,10 +109,10 @@ export function LandingPage() {
       {/* Features Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
             Todo lo que necesitas
           </h2>
-          <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+          <p className="text-slate-500 text-lg max-w-2xl mx-auto">
             Herramientas diseñadas para la operación diaria de tu negocio
           </p>
         </div>
@@ -121,27 +121,27 @@ export function LandingPage() {
           {features.map((feature, index) => (
             <div
               key={index}
-              className="group p-6 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl hover:bg-white/10 hover:border-emerald-500/30 transition-all"
+              className="group p-6 bg-white backdrop-blur-sm border border-slate-200 rounded-2xl hover:bg-blue-50 hover:border-blue-300 transition-all shadow-sm"
             >
-              <div className="w-14 h-14 bg-emerald-600/20 rounded-xl flex items-center justify-center text-emerald-400 mb-5 group-hover:bg-emerald-600/30 transition-colors">
+              <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 mb-5 group-hover:bg-blue-200 transition-colors">
                 {feature.icon}
               </div>
-              <h3 className="text-xl font-semibold text-white mb-3">{feature.title}</h3>
-              <p className="text-slate-400 leading-relaxed">{feature.description}</p>
+              <h3 className="text-xl font-semibold text-slate-900 mb-3">{feature.title}</h3>
+              <p className="text-slate-600 leading-relaxed">{feature.description}</p>
             </div>
           ))}
         </div>
       </div>
 
       {/* Footer */}
-      <footer className="border-t border-white/10 bg-black/20">
+      <footer className="border-t border-slate-200 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <ShoppingCart className="w-4 h-4 text-white" />
               </div>
-              <span className="text-white font-semibold">Grocery POS</span>
+              <span className="text-slate-900 font-semibold">FlowPOS</span>
             </div>
             <p className="text-slate-500 text-sm">
               Hecho para almacenes y despensas

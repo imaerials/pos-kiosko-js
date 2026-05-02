@@ -37,7 +37,7 @@ export function LoginPage() {
           <div className="w-16 h-16 bg-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4">
             <ShoppingCart className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Grocery POS</h1>
+          <h1 className="text-2xl font-bold text-gray-900">FlowPOS</h1>
           <p className="text-gray-500 mt-1">Ingresá para continuar</p>
         </div>
 

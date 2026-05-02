@@ -50,7 +50,7 @@ export function RegisterPage() {
             <ShoppingCart className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Crear cuenta</h1>
-          <p className="text-gray-500 mt-1">Empezá a usar Grocery POS</p>
+          <p className="text-gray-500 mt-1">Empezá a usar FlowPOS</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
