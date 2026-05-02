@@ -47,9 +47,9 @@ npm run dev:ui     # Frontend only (vite)
 
 ## First-Run Setup
 
-There are no seeded user accounts. The first user to register at `/register` is automatically promoted to `admin`; subsequent registrations default to `cashier`.
+There are no seeded user accounts. Every user who registers at `/register` is created as `admin`.
 
-Admins can create cashiers via the `/users` page or by calling `POST /api/auth/users`.
+Admins can create cashiers and managers via the `/users` page or by calling `POST /api/auth/users` with a `role` of `cashier` or `manager`.
 
 ## Architecture
 
@@ -80,7 +80,7 @@ types/        # TypeScript interfaces
 | Route | Methods | Auth |
 |-------|---------|------|
 | /api/auth | POST login, POST register, GET me | Public / JWT |
-| /api/auth/users | POST | admin/manager |
+| /api/auth/users | POST | admin |
 | /api/products | GET, POST, PUT, DELETE | CRUD by manager/admin |
 | /api/categories | GET, POST, PUT | CRUD by manager/admin |
 | /api/cart | GET, POST/PUT/DELETE items | JWT required |

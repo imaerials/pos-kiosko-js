@@ -11,6 +11,10 @@ export const registerSchema = z.object({
   name: z.string().min(1).max(100),
 });
 
+export const createUserSchema = registerSchema.extend({
+  role: z.enum(['cashier', 'manager']),
+});
+
 export const createProductSchema = z.object({
   sku: z.string().min(1).max(50),
   barcode: z.string().max(50).optional(),
@@ -74,6 +78,7 @@ export const restockSchema = z.object({
 
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
+export type CreateUserInput = z.infer<typeof createUserSchema>;
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
 export type CreateCategoryInput = z.infer<typeof createCategorySchema>;

@@ -64,8 +64,8 @@ export const authApi = {
     const { data } = await api.get<User>('/auth/me');
     return data;
   },
-  createUser: async (name: string, email: string, password: string): Promise<AuthResponse> => {
-    const { data } = await api.post<AuthResponse>('/auth/users', { name, email, password });
+  createUser: async (name: string, email: string, password: string, role: 'cashier' | 'manager'): Promise<AuthResponse> => {
+    const { data } = await api.post<AuthResponse>('/auth/users', { name, email, password, role });
     return data;
   },
 };

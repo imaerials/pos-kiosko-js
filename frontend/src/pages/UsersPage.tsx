@@ -10,6 +10,7 @@ export function UsersPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [role, setRole] = useState<'cashier' | 'manager'>('cashier');
   const [isLoading, setIsLoading] = useState(false);
 
   const passwordMismatch = confirmPassword.length > 0 && password !== confirmPassword;
@@ -27,12 +28,13 @@ export function UsersPage() {
     setIsLoading(true);
 
     try {
-      await authApi.createUser(name, email, password);
+      await authApi.createUser(name, email, password, role);
       toast.success(`Usuario creado exitosamente`);
       setName('');
       setEmail('');
       setPassword('');
       setConfirmPassword('');
+      setRole('cashier');
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Error al crear el usuario');
     } finally {
@@ -44,7 +46,7 @@ export function UsersPage() {
     <div className="p-6 max-w-2xl mx-auto">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Crear Usuario</h1>
-        <p className="text-gray-500 mt-1">Agregar un nuevo cajero al sistema</p>
+        <p className="text-gray-500 mt-1">Agregar un nuevo cajero o gerente al sistema</p>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -83,6 +85,18 @@ export function UsersPage() {
             required
           />
 
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Rol</label>
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value as 'cashier' | 'manager')}
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              <option value="cashier">Cajero</option>
+              <option value="manager">Gerente</option>
+            </select>
+          </div>
+
           <div className="pt-4">
             <Button
               type="submit"
@@ -97,7 +111,7 @@ export function UsersPage() {
               ) : (
                 <>
                   <UserPlus className="w-4 h-4" />
-                  Crear Cajero
+                  Crear Usuario
                 </>
               )}
             </Button>

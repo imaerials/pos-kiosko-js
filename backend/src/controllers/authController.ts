@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { authService } from '../services/authService.js';
-import { loginSchema, registerSchema } from '../utils/validation.js';
+import { loginSchema, registerSchema, createUserSchema } from '../utils/validation.js';
 import { AuthenticatedRequest } from '../types/index.js';
 
 export const authController = {
@@ -22,8 +22,8 @@ export const authController = {
   },
 
   async createUser(req: AuthenticatedRequest, res: Response) {
-    const data = registerSchema.parse(req.body);
-    const result = await authService.createUser(data, req.user!.role);
+    const data = createUserSchema.parse(req.body);
+    const result = await authService.createUser(data);
     res.json({ success: true, data: result });
   },
 };
