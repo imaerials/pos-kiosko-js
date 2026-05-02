@@ -15,4 +15,6 @@ export const config = {
   bcryptSaltRounds: 12,
   taxRate: 0.1,
   allowedRegistrationEmails,
+  mercadoPagoAccessToken: process.env.MERCADO_PAGO_ACCESS_TOKEN ?? '',
+  mercadoPagoWebhookSecret: process.env.MERCADO_PAGO_WEBHOOK_SECRET ?? '',
 };

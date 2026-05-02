@@ -3,6 +3,7 @@ import { inventoryRepository } from '../repositories/inventoryRepository.js';
 import { config } from '../config/index.js';
 import { CreateTransactionInput, RefundTransactionInput } from '../utils/validation.js';
 import { NotFoundError, BadRequestError } from '../utils/errors.js';
+import { createQRPayment } from './mercadoPagoService.js';
 
 function generateReceiptNumber(): string {
   const timestamp = Date.now().toString(36).toUpperCase();
@@ -71,37 +72,127 @@ export const transactionService = {
     const taxAmount = subtotal * config.taxRate;
     const discountAmount = data.discount_amount ?? 0;
     const total = subtotal + taxAmount - discountAmount;
+    const receiptNumber = generateReceiptNumber();
 
-    if (data.amount_paid < total) {
-      throw new BadRequestError('Amount paid is less than total');
+    // Cash payment - synchronous completion
+    if (data.payment_method === 'cash') {
+      if (data.amount_paid < total) {
+        throw new BadRequestError('Amount paid is less than total');
+      }
+      const changeGiven = data.amount_paid - total;
+
+      const transaction = await transactionRepository.create({
+        receiptNumber,
+        userId,
+        subtotal,
+        taxAmount,
+        discountAmount,
+        total,
+        paymentMethod: 'cash',
+        amountPaid: data.amount_paid,
+        changeGiven,
+        customerName: data.customer_name,
+        notes: data.notes,
+        items: data.items.map(item => ({
+          productId: item.product_id,
+          productName: item.product_name,
+          productSku: item.product_sku,
+          quantity: item.quantity,
+          unitPrice: item.unit_price,
+          subtotal: item.unit_price * item.quantity,
+        })),
+      });
+
+      if (!transaction) throw new BadRequestError('Failed to create transaction');
+      return mapTransaction(transaction);
     }
 
-    const changeGiven = data.amount_paid - total;
+    // Card payment - async with Mercado Pago QR
+    if (data.payment_method === 'card') {
+      const changeGiven = 0;
 
-    const transaction = await transactionRepository.create({
-      receiptNumber: generateReceiptNumber(),
-      userId,
-      subtotal,
-      taxAmount,
-      discountAmount,
-      total,
-      paymentMethod: data.payment_method,
-      amountPaid: data.amount_paid,
-      changeGiven,
-      customerName: data.customer_name,
-      notes: data.notes,
-      items: data.items.map(item => ({
-        productId: item.product_id,
-        productName: item.product_name,
-        productSku: item.product_sku,
-        quantity: item.quantity,
-        unitPrice: item.unit_price,
-        subtotal: item.unit_price * item.quantity,
-      })),
-    });
+      // Create transaction in pending state first
+      const transaction = await transactionRepository.create({
+        receiptNumber,
+        userId,
+        subtotal,
+        taxAmount,
+        discountAmount,
+        total,
+        paymentMethod: 'card',
+        amountPaid: total,
+        changeGiven,
+        status: 'pending_payment',
+        customerName: data.customer_name,
+        notes: data.notes,
+        items: data.items.map(item => ({
+          productId: item.product_id,
+          productName: item.product_name,
+          productSku: item.product_sku,
+          quantity: item.quantity,
+          unitPrice: item.unit_price,
+          subtotal: item.unit_price * item.quantity,
+        })),
+      });
 
-    if (!transaction) throw new BadRequestError('Failed to create transaction');
-    return mapTransaction(transaction);
+      if (!transaction) throw new BadRequestError('Failed to create transaction');
+
+      // Initiate Mercado Pago QR payment
+      try {
+        const qrResult = await createQRPayment(total, receiptNumber, `FlowPOS Sale ${receiptNumber}`);
+
+        await transactionRepository.updateMercadoPago(transaction.id, {
+          mercadoPagoPaymentId: qrResult.paymentId,
+          mercadoPagoQrData: qrResult.qrData,
+          mercadoPagoStatus: 'pending',
+        });
+
+        const mapped = mapTransaction(transaction);
+        return {
+          ...mapped,
+          payment_pending: true,
+          qr_data: qrResult.qrData,
+          qr_image_url: qrResult.qrImageUrl,
+          payment_id: qrResult.paymentId,
+        };
+      } catch (error) {
+        // Rollback: delete pending transaction
+        await transactionRepository.delete(transaction.id);
+        throw new BadRequestError('Failed to initiate card payment. Please try again.');
+      }
+    }
+
+    // Mixed payment - similar to card (QR for card portion)
+    if (data.payment_method === 'mixed') {
+      const changeGiven = data.amount_paid >= total ? data.amount_paid - total : 0;
+
+      const transaction = await transactionRepository.create({
+        receiptNumber,
+        userId,
+        subtotal,
+        taxAmount,
+        discountAmount,
+        total,
+        paymentMethod: 'mixed',
+        amountPaid: data.amount_paid,
+        changeGiven,
+        customerName: data.customer_name,
+        notes: data.notes,
+        items: data.items.map(item => ({
+          productId: item.product_id,
+          productName: item.product_name,
+          productSku: item.product_sku,
+          quantity: item.quantity,
+          unitPrice: item.unit_price,
+          subtotal: item.unit_price * item.quantity,
+        })),
+      });
+
+      if (!transaction) throw new BadRequestError('Failed to create transaction');
+      return mapTransaction(transaction);
+    }
+
+    throw new BadRequestError('Invalid payment method');
   },
 
   async refund(id: string, data: RefundTransactionInput, userRole: string) {

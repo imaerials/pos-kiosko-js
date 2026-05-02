@@ -26,6 +26,23 @@ ALLOWED_REGISTRATION_EMAILS=owner@store.com,manager@store.com
 
 Matching is case-insensitive and trims whitespace. Leave the variable empty/unset to keep registration open.
 
+### Mercado Pago (QR Payments)
+
+For card payments via QR code, configure your Mercado Pago credentials in `backend/.env`:
+
+```env
+MERCADO_PAGO_ACCESS_TOKEN=APP_USR-xxxxxxxxxxxxxxxxxxxxx
+MERCADO_PAGO_WEBHOOK_SECRET=your_webhook_secret
+```
+
+Get your credentials from [Mercado Pago Developers](https://www.mercadopago.com/developers/panel).
+
+The webhook endpoint is `POST /api/webhooks/mercadopago`. For local testing, use ngrok to expose your dev server:
+```bash
+ngrok http 3001
+```
+Then register the webhook URL in your Mercado Pago app settings pointing to `https://your-ngrok-url/api/webhooks/mercadopago`.
+
 ---
 
 ## Development
@@ -128,14 +145,15 @@ All three are gitignored. In production the frontend calls `/api` (relative); ng
 
 ## Features
 
-- **POS interface**: product grid, category filter, search by name/SKU/barcode, cart, checkout (cash + card), printable receipt
+- **POS interface**: product grid, category filter, search by name/SKU/barcode, cart, checkout (cash + Mercado Pago QR), printable receipt
 - **Mobile-responsive**: stacked layout with slide-up cart drawer on phones, full side-by-side on desktop
 - **Transaction history**: list view with receipt detail modal, refund flow (manager+)
 - **Inventory management**: stock levels, low-stock alerts, in-place edit (manager/admin)
 - **Product management**: full CRUD with initial-stock setup (admin)
 - **Finance dashboard**: revenue, COGS, gross profit, top products, payment-method breakdown (admin)
+- **Mercado Pago integration**: QR payments for card transactions with async webhook confirmation
 - **Auth**: email/password, JWT, self-registration (first user → admin)
-- **Role-based access**: cashier (POS + own transactions), manager (+ inventory, all transactions, refunds), admin (+ products, finance)
+- **Role-based access**: cashier (POS + own transactions), manager (+ inventory, all transactions, refunds), admin (+ products, finance, users)
 
 ---
 
@@ -152,7 +170,7 @@ All three are gitignored. In production the frontend calls `/api` (relative); ng
 │       ├── middleware/         # JWT auth, error handler, rate limiter, validation
 │       ├── routes/             # Express router definitions
 │       ├── controllers/        # route handlers
-│       ├── services/           # business logic
+│       ├── services/           # business logic (auth, transactions, mercadoPago, etc.)
 │       ├── repositories/       # Prisma queries
 │       ├── db/seed.ts          # seeds users/categories/products/inventory
 │       └── utils/              # custom errors, Zod validation schemas
@@ -181,3 +199,4 @@ All three are gitignored. In production the frontend calls `/api` (relative); ng
 | `/api/transactions` | GET, POST, POST `:id/refund` | cashier (own), manager (all + refunds) |
 | `/api/inventory` | GET, PUT, POST restock | manager/admin |
 | `/api/finance/summary` | GET | admin |
+| `/api/webhooks/mercadopago` | POST | Webhook signature verification |

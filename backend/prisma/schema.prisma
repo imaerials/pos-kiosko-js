@@ -133,6 +133,12 @@ model Transaction {
   notes          String?           @db.Text
   createdAt      DateTime          @default(now()) @map("created_at")
 
+  // Mercado Pago integration
+  mercadoPagoPaymentId String?   @map("mercado_pago_payment_id") @db.VarChar(100)
+  mercadoPagoStatus     String?   @map("mercado_pago_status") @db.VarChar(50)
+  mercadoPagoQrData     String?   @map("mercado_pago_qr_data") @db.Text
+  paymentCompletedAt    DateTime? @map("payment_completed_at")
+
   user  User?              @relation(fields: [userId], references: [id])
   items TransactionItem[]
 
@@ -150,6 +156,7 @@ enum PaymentMethod {
 
 enum TransactionStatus {
   completed
+  pending_payment
   refunded
   voided
 }

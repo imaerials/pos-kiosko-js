@@ -26,8 +26,13 @@ export const transactionController = {
 
   async create(req: AuthenticatedRequest, res: Response) {
     const userId = req.user?.userId;
-    const transaction = await transactionService.create(userId, req.body);
-    res.status(201).json({ success: true, data: transaction });
+    const result = await transactionService.create(userId, req.body) as any;
+
+    if (result.payment_pending) {
+      res.status(202).json({ success: true, data: result });
+    } else {
+      res.status(201).json({ success: true, data: result });
+    }
   },
 
   async refund(req: AuthenticatedRequest, res: Response) {

@@ -12,6 +12,7 @@ import inventoryRoutes from './routes/inventory.js';
 import cartRoutes from './routes/cart.js';
 import transactionRoutes from './routes/transactions.js';
 import financeRoutes from './routes/finance.js';
+import webhookRoutes from './routes/webhooks.js';
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use('/api/inventory', inventoryRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/finance', financeRoutes);
+app.use('/api/webhooks', webhookRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ShoppingCart, X } from 'lucide-react';
+import { ShoppingCart, X, QrCode, Loader2 } from 'lucide-react';
 import { productsApi, categoriesApi, transactionsApi } from '../services/api';
 import { useCartStore } from '../store/cartStore';
 import { ProductGrid } from '../components/products/ProductGrid';
 import { CartPanel } from '../components/cart/CartPanel';
 import { CheckoutModal } from '../components/checkout/CheckoutModal';
 import { ReceiptModal } from '../components/receipt/ReceiptModal';
+import { Modal } from '../components/ui/Modal';
 import { toast } from 'react-hot-toast';
 import type { Product, Transaction } from '../types';
 
@@ -15,6 +16,9 @@ export function POSPage() {
   const [receiptOpen, setReceiptOpen] = useState(false);
   const [mobileCartOpen, setMobileCartOpen] = useState(false);
   const [completedTransaction, setCompletedTransaction] = useState<Transaction | null>(null);
+  const [qrModalOpen, setQrModalOpen] = useState(false);
+  const [qrData, setQrData] = useState<{ qr_data?: string; qr_image_url?: string; payment_id?: string } | null>(null);
+  const [pendingTransactionId, setPendingTransactionId] = useState<string | null>(null);
 
   const { data: products = [] } = useQuery({
     queryKey: ['products'],
@@ -35,7 +39,7 @@ export function POSPage() {
 
   const handleCheckoutComplete = async (paymentMethod: 'cash' | 'card', amountPaid: number) => {
     try {
-      const transaction = await transactionsApi.create({
+      const transaction: any = await transactionsApi.create({
         payment_method: paymentMethod,
         amount_paid: paymentMethod === 'card' ? getTotal() : amountPaid,
         items: items.map(item => ({
@@ -47,6 +51,16 @@ export function POSPage() {
         })),
       });
 
+      // Card payment with pending Mercado Pago QR
+      if (transaction.payment_pending && transaction.qr_data) {
+        setQrData(transaction);
+        setPendingTransactionId(transaction.id);
+        setCheckoutOpen(false);
+        setQrModalOpen(true);
+        return;
+      }
+
+      // Cash payment - complete immediately
       setCompletedTransaction(transaction);
       clearCart();
       setCheckoutOpen(false);
@@ -57,6 +71,33 @@ export function POSPage() {
       console.error(error);
     }
   };
+
+  // Poll for payment confirmation when QR is displayed
+  useEffect(() => {
+    if (!pendingTransactionId || !qrModalOpen) return;
+
+    const pollPayment = async () => {
+      try {
+        const transaction = await transactionsApi.getById(pendingTransactionId);
+        if (transaction.status === 'completed') {
+          setCompletedTransaction(transaction);
+          setQrModalOpen(false);
+          setPendingTransactionId(null);
+          clearCart();
+          setReceiptOpen(true);
+        } else if (transaction.status === 'voided' || transaction.status === 'refunded') {
+          toast.error('Pago rechazado o cancelado');
+          setQrModalOpen(false);
+          setPendingTransactionId(null);
+        }
+      } catch (error) {
+        console.error('Error polling payment status:', error);
+      }
+    };
+
+    const interval = setInterval(pollPayment, 2000);
+    return () => clearInterval(interval);
+  }, [pendingTransactionId, qrModalOpen, clearCart, setReceiptOpen]);
 
   const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
 
@@ -133,6 +174,38 @@ export function POSPage() {
         onClose={() => setReceiptOpen(false)}
         transaction={completedTransaction}
       />
+
+      {/* QR Code Modal for Mercado Pago */}
+      <Modal isOpen={qrModalOpen} onClose={() => setQrModalOpen(false)} title="Escaneá para pagar" size="sm">
+        <div className="text-center space-y-4">
+          <div className="flex items-center justify-center text-blue-600">
+            <QrCode size={64} />
+          </div>
+          <p className="text-gray-600">Escaneá el código QR con la app de Mercado Pago o Mercado Pago</p>
+
+          {qrData?.qr_image_url ? (
+            <img
+              src={qrData.qr_image_url}
+              alt="QR Code"
+              className="mx-auto w-64 h-64 object-contain border rounded-lg"
+            />
+          ) : qrData?.qr_data ? (
+            <div className="flex items-center justify-center p-4 bg-gray-50 rounded-lg">
+              <Loader2 className="animate-spin text-blue-600" size={32} />
+              <span className="ml-2 text-gray-500">Cargando código QR...</span>
+            </div>
+          ) : null}
+
+          <div className="p-3 bg-gray-50 rounded-lg">
+            <p className="text-sm text-gray-500">ID de pago</p>
+            <p className="font-mono text-sm">{qrData?.payment_id || 'N/A'}</p>
+          </div>
+
+          <p className="text-sm text-gray-500">
+            Esperando confirmación de pago...
+          </p>
+        </div>
+      </Modal>
     </div>
   );
 }

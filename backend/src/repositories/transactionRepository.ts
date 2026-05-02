@@ -3,7 +3,7 @@ import prisma from '../config/database.js';
 export const transactionRepository = {
   async findAll({ page = 1, limit = 20, userId, status }: { page?: number; limit?: number; userId?: string; status?: string } = {}) {
     const skip = (page - 1) * limit;
-    const where = { ...(userId && { userId }), ...(status && { status: status as 'completed' | 'refunded' | 'voided' }) };
+    const where = { ...(userId && { userId }), ...(status && { status: status as 'completed' | 'pending_payment' | 'refunded' | 'voided' }) };
     const [items, total] = await Promise.all([
       prisma.transaction.findMany({
         skip,
@@ -41,6 +41,7 @@ export const transactionRepository = {
     paymentMethod: 'cash' | 'card' | 'mixed';
     amountPaid: number;
     changeGiven?: number;
+    status?: 'completed' | 'pending_payment' | 'refunded' | 'voided';
     customerName?: string;
     notes?: string;
     items: { productId: string; productName: string; productSku: string; quantity: number; unitPrice: number; subtotal: number }[];
@@ -57,6 +58,7 @@ export const transactionRepository = {
           paymentMethod: data.paymentMethod,
           amountPaid: data.amountPaid,
           changeGiven: data.changeGiven ?? 0,
+          status: data.status ?? 'completed',
           customerName: data.customerName,
           notes: data.notes,
         },
@@ -141,5 +143,22 @@ export const transactionRepository = {
     ]);
 
     return { transactions, summary };
+  },
+
+  async updateMercadoPago(id: string, data: {
+    mercadoPagoPaymentId?: string;
+    mercadoPagoQrData?: string;
+    mercadoPagoStatus?: string;
+  }) {
+    return prisma.transaction.update({
+      where: { id },
+      data,
+    });
+  },
+
+  async delete(id: string) {
+    return prisma.transaction.delete({
+      where: { id },
+    });
   },
 };
