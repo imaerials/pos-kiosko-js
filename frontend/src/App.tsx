@@ -11,6 +11,7 @@ import { TransactionsPage } from './pages/TransactionsPage';
 import { InventoryPage } from './pages/InventoryPage';
 import { ProductsPage } from './pages/ProductsPage';
 import { FinancePage } from './pages/FinancePage';
+import { UsersPage } from './pages/UsersPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -137,6 +138,18 @@ export default function App() {
                 <AdminOnlyRoute>
                   <AppLayout>
                     <FinancePage />
+                  </AppLayout>
+                </AdminOnlyRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/users"
+            element={
+              <ProtectedRoute>
+                <AdminOnlyRoute>
+                  <AppLayout>
+                    <UsersPage />
                   </AppLayout>
                 </AdminOnlyRoute>
               </ProtectedRoute>

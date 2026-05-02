@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Package, ShoppingCart, ClipboardList, Settings, LogOut, Box, TrendingUp, Menu, X } from 'lucide-react';
+import { Package, ShoppingCart, ClipboardList, Settings, LogOut, Box, TrendingUp, Menu, X, Users } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { authApi } from '../../services/api';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -30,6 +30,7 @@ export function Header() {
     { icon: <Box size={20} />, label: 'Productos', path: '/products', show: user?.role !== 'cashier' },
     { icon: <Settings size={20} />, label: 'Inventario', path: '/inventory', show: user?.role !== 'cashier' },
     { icon: <TrendingUp size={20} />, label: 'Finanzas', path: '/finance', show: user?.role === 'admin' },
+    { icon: <Users size={20} />, label: 'Usuarios', path: '/users', show: user?.role === 'admin' },
   ].filter((i) => i.show);
 
   return (

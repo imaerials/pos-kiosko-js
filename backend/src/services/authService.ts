@@ -53,4 +53,23 @@ export const authService = {
     if (!user) throw new UnauthorizedError('User not found');
     return { id: user.id, email: user.email, name: user.name, role: user.role };
   },
+
+  async createUser({ email, password, name }: RegisterInput, createdByRole: string) {
+    const existing = await userRepository.findByEmail(email);
+    if (existing) {
+      throw new ConflictError('Email already in use');
+    }
+
+    const role = createdByRole === 'admin' ? 'cashier' : 'cashier';
+    const passwordHash = await bcrypt.hash(password, config.bcryptSaltRounds);
+    const user = await userRepository.create({ email, passwordHash, name, role });
+
+    const payload: JwtPayload = { userId: user.id, email: user.email, role: user.role };
+    const accessToken = jwt.sign(payload, config.jwtSecret, { expiresIn: '8h' } as jwt.SignOptions);
+
+    return {
+      accessToken,
+      user: { id: user.id, email: user.email, name: user.name, role: user.role },
+    };
+  },
 };

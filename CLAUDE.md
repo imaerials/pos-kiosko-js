@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Grocery POS (Point of Sale)** fullstack application for grocery store operations.
+**FlowPOS** fullstack application for grocery store operations.
 
 ## Stack
 
@@ -31,27 +31,25 @@ Services:
 
 ## Development Commands
 
-### Backend
+### From project root
 ```bash
-cd backend
-npm install          # Install dependencies
-npm run dev          # Start with tsx watch (requires Postgres)
-npm run build        # Compile TypeScript
-npm start            # Run production build
-npm run db:seed      # Seed database
+npm install                    # Install all dependencies
+npm run dev                    # Start API + UI concurrently
+npm run db:push                # Push Prisma schema to database
+npm run db:seed                # Seed demo data
 ```
 
-### Frontend
+### Individual services
 ```bash
-cd frontend
-npm install          # Install dependencies
-npm run dev          # Vite dev server
-npm run build        # Production build
+npm run dev:api    # Backend only (tsx watch)
+npm run dev:ui     # Frontend only (vite)
 ```
 
 ## First-Run Setup
 
-There are no seeded user accounts. The first user to register at `/register` is automatically promoted to `admin`; subsequent registrations default to `cashier`. Admins can change roles via the user management UI.
+There are no seeded user accounts. The first user to register at `/register` is automatically promoted to `admin`; subsequent registrations default to `cashier`.
+
+Admins can create cashiers via the `/users` page or by calling `POST /api/auth/users`.
 
 ## Architecture
 
@@ -81,7 +79,8 @@ types/        # TypeScript interfaces
 ### API Endpoints
 | Route | Methods | Auth |
 |-------|---------|------|
-| /api/auth | POST login, GET me | Public / JWT |
+| /api/auth | POST login, POST register, GET me | Public / JWT |
+| /api/auth/users | POST | admin/manager |
 | /api/products | GET, POST, PUT, DELETE | CRUD by manager/admin |
 | /api/categories | GET, POST, PUT | CRUD by manager/admin |
 | /api/cart | GET, POST/PUT/DELETE items | JWT required |

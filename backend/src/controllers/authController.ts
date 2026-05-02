@@ -20,4 +20,10 @@ export const authController = {
     const user = await authService.getProfile(req.user!.userId);
     res.json({ success: true, data: user });
   },
+
+  async createUser(req: AuthenticatedRequest, res: Response) {
+    const data = registerSchema.parse(req.body);
+    const result = await authService.createUser(data, req.user!.role);
+    res.json({ success: true, data: result });
+  },
 };

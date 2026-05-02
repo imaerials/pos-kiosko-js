@@ -1,4 +1,4 @@
-# Grocery POS
+# FlowPOS
 
 A fullstack Point of Sale application for grocery store operations. Mobile-responsive UI, role-based access, and a Coolify-ready Docker setup.
 
@@ -14,7 +14,7 @@ A fullstack Point of Sale application for grocery store operations. Mobile-respo
 You have two options to get an account:
 
 - **Self-register**: open the app and click **Crear cuenta**. The first user to register is automatically promoted to `admin`; subsequent self-registrations get the `cashier` role.
-- **Seed demo accounts** (handy for local dev/testing): run `npm run db:seed` from `backend/`. This creates `admin@pos.local`, `manager@pos.local`, and `cashier@pos.local` with the matching `admin123` / `manager123` / `cashier123` passwords, plus sample categories and products. Do **not** seed in production with these defaults — they're public.
+- **Seed demo accounts** (handy for local dev/testing): run `npm run db:seed` from the project root. This creates `admin@pos.local`, `manager@pos.local`, and `cashier@pos.local` with the matching `admin123` / `manager123` / `cashier123` passwords, plus sample categories and products. Do **not** seed in production with these defaults — they're public.
 
 ### Controlling who can register
 
@@ -55,10 +55,8 @@ cp backend/.env.example backend/.env   # required: DATABASE_URL, JWT_SECRET
 **4. Push the Prisma schema and seed (first run)**
 
 ```bash
-cd backend
-npx prisma db push   # creates tables from prisma/schema.prisma
-npm run db:seed      # demo users, categories, products, inventory
-cd ..
+npm run db:push          # creates tables from prisma/schema.prisma
+npm run db:seed          # demo users, categories, products, inventory
 ```
 
 **5. Start both services**
@@ -164,7 +162,7 @@ All three are gitignored. In production the frontend calls `/api` (relative); ng
     └── src/
         ├── components/         # ui/, layout/, products/, cart/, checkout/, receipt/
         ├── pages/              # LoginPage, RegisterPage, POSPage, TransactionsPage,
-        │                       # InventoryPage, ProductsPage, FinancePage
+        │                       # InventoryPage, ProductsPage, FinancePage, UsersPage
         ├── store/              # Zustand (auth, cart)
         └── services/           # API client (axios + interceptors)
 ```
@@ -176,6 +174,7 @@ All three are gitignored. In production the frontend calls `/api` (relative); ng
 | `/api/auth/login` | POST | Public |
 | `/api/auth/register` | POST | Public (role forced server-side) |
 | `/api/auth/me` | GET | JWT |
+| `/api/auth/users` | POST | admin/manager |
 | `/api/products` | GET, POST, PUT, DELETE | GET public; mutations manager/admin |
 | `/api/categories` | GET, POST, PUT | GET public; mutations manager/admin |
 | `/api/cart` | GET, POST/PUT/DELETE items | JWT |
