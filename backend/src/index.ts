@@ -20,6 +20,8 @@ app.use(cors());
 app.use(compression());
 app.use(express.json());
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));
+app.use('/api/auth/login', rateLimit({ windowMs: 60 * 1000, max: 5, message: { success: false, error: 'Too many login attempts, try again in a minute' }, standardHeaders: true, legacyHeaders: false }));
+app.use('/api/auth/register', rateLimit({ windowMs: 60 * 1000, max: 10, message: { success: false, error: 'Too many registration attempts, try again in a minute' }, standardHeaders: true, legacyHeaders: false }));
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
