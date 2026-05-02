@@ -29,7 +29,7 @@ function mapTransaction(t: PrismaTransaction) {
     notes: t.notes ?? null,
     created_at: t.createdAt.toISOString(),
     user: t.user ? { name: t.user.name } : undefined,
-    items: t.items.map(i => ({
+    items: t.items.map((i: { id: string; transactionId: string; productId: string | null; productName: string; productSku: string; quantity: number; unitPrice: any; subtotal: any }) => ({
       id: i.id,
       transaction_id: i.transactionId,
       product_id: i.productId ?? null,

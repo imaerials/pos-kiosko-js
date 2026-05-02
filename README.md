@@ -37,6 +37,8 @@ MERCADO_PAGO_WEBHOOK_SECRET=your_webhook_secret
 
 Get your credentials from [Mercado Pago Developers](https://www.mercadopago.com/developers/panel).
 
+**Testing:** Use Mercado Pago's test buyer account (find it in your app's "Cuentas de prueba" section in the Developer Dashboard) to simulate payments without using real money.
+
 The webhook endpoint is `POST /api/webhooks/mercadopago`. For local testing, use ngrok to expose your dev server:
 ```bash
 ngrok http 3001
