@@ -1,4 +1,4 @@
-import { MercadoPagoConfig, Payment, MerchantOrder } from 'mercadopago';
+import { MercadoPagoConfig, Payment } from 'mercadopago';
 import crypto from 'crypto';
 import prisma from '../config/database.js';
 import { config } from '../config/index.js';
@@ -24,14 +24,25 @@ export interface QRPaymentResult {
   qrImageUrl: string;
 }
 
+export interface PreferenceItem {
+  id?: string;
+  title: string;
+  quantity: number;
+  unit_price: number;
+  description?: string;
+}
+
 export async function createQRPayment(
   total: number,
   receiptNumber: string,
-  description?: string
+  description?: string,
+  items?: PreferenceItem[]
 ): Promise<QRPaymentResult> {
-  const payment = new Payment(getClient());
+  // For QR payments at POS, we use Payment API with PIX
+  // The preference.id is used as external reference for webhook reconciliation
+  const paymentClient = new Payment(getClient());
 
-  const result = await payment.create({
+  const paymentResult = await paymentClient.create({
     body: {
       transaction_amount: Number(total),
       description: description || `FlowPOS Sale ${receiptNumber}`,
@@ -40,14 +51,21 @@ export async function createQRPayment(
       point_of_interaction: {
         type: 'QR',
       },
-    },
+      items: items?.map(item => ({
+        id: item.id || receiptNumber,
+        title: item.title,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+      })),
+    } as any,
   });
 
-  const qrData = (result.point_of_interaction?.transaction_data as any)?.qr_code_base64 || '';
-  const qrImageUrl = (result.point_of_interaction?.transaction_data as any)?.qr_code_image_url || '';
+  const transactionData = (paymentResult.point_of_interaction as any)?.transaction_data;
+  const qrData = transactionData?.qr_code_base64 || '';
+  const qrImageUrl = transactionData?.qr_code_image_url || '';
 
   return {
-    paymentId: String(result.id),
+    paymentId: String(paymentResult.id),
     qrData,
     qrImageUrl,
   };

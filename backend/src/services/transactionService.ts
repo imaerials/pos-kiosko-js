@@ -139,7 +139,17 @@ export const transactionService = {
 
       // Initiate Mercado Pago QR payment
       try {
-        const qrResult = await createQRPayment(total, receiptNumber, `FlowPOS Sale ${receiptNumber}`);
+        const preferenceItems = data.items.map(item => ({
+          title: item.product_name,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+        }));
+        const qrResult = await createQRPayment(
+          total,
+          receiptNumber,
+          `FlowPOS Sale ${receiptNumber}`,
+          preferenceItems
+        );
 
         await transactionRepository.updateMercadoPago(transaction.id, {
           mercadoPagoPaymentId: qrResult.paymentId,

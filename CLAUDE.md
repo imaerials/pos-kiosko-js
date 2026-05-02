@@ -86,6 +86,7 @@ types/        # TypeScript interfaces
 | /api/cart | GET, POST/PUT/DELETE items | JWT required |
 | /api/transactions | GET, POST, POST :id/refund | List own (cashier), all (manager), refund (manager) |
 | /api/inventory | GET, PUT, POST restock | manager/admin |
+| /api/webhooks/mercadopago | POST | Webhook signature verification |
 
 ### Database Schema
 Tables: `users`, `categories`, `products`, `inventory`, `carts`, `cart_items`, `transactions`, `transaction_items`
@@ -93,10 +94,12 @@ Tables: `users`, `categories`, `products`, `inventory`, `carts`, `cart_items`, `
 Key design decisions:
 - `transaction_items` snapshot product data at sale time for historical accuracy
 - `inventory.quantity` decremented on transaction creation
+- Transaction status: `completed`, `pending_payment` (Mercado Pago QR), `refunded`, `voided`
+- Mercado Pago fields: `mercadoPagoPaymentId`, `mercadoPagoStatus`, `mercadoPagoQrData`
 - Roles: `cashier` (POS + own transactions), `manager` (+ inventory, all transactions), `admin` (+ user management)
 
 ## Role-Based Access
 
 - **cashier**: POS operations, view own transactions
 - **manager**: Inventory management, view all transactions, process refunds
-- **admin**: Full access including product/category/user CRUD
+- **admin**: Full access including product/category/user CRUD, Mercado Pago webhook handling
