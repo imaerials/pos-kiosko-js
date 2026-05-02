@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './store/authStore';
 import { Header } from './components/layout/Header';
+import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { POSPage } from './pages/POSPage';
@@ -19,6 +20,16 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+function AuthRedirect({ children }: { children: React.ReactNode }) {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
+  if (isAuthenticated) {
+    return <Navigate to="/pos" replace />;
+  }
+
+  return <>{children}</>;
+}
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -69,6 +80,14 @@ export default function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route
             path="/"
+            element={
+              <AuthRedirect>
+                <LandingPage />
+              </AuthRedirect>
+            }
+          />
+          <Route
+            path="/pos"
             element={
               <ProtectedRoute>
                 <AppLayout>
